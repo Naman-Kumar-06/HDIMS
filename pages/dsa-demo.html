@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DSA Features - HDIMS</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="../css/styles.css">
+    <style>
+        .dsa-card {
+            transition: all 0.3s ease;
+        }
+        .dsa-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        }
+        .result-container {
+            background-color: #f8f9fa;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            max-height: 300px;
+            overflow-y: auto;
+            font-family: monospace;
+        }
+        .chart-container {
+            height: 250px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <div class="col-md-3 col-lg-2 d-md-block sidebar collapse">
+                <div class="sidebar-logo d-flex align-items-center justify-content-center">
+                    <i class="bi bi-plus-circle-fill text-primary" style="font-size: 2rem;"></i>
+                    <h4 class="ms-2 mb-0">HDIMS</h4>
+                </div>
+                <div class="d-flex flex-column align-items-center align-items-sm-start p-3">
+                    <ul class="nav flex-column w-100">
+                        <li class="nav-item">
+                            <a href="#" class="nav-link" onclick="window.location.href='../index.html'">
+                                <i class="bi bi-house-door"></i> Home
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="#" class="nav-link active">
+                                <i class="bi bi-code-square"></i> DSA Features
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="#" class="nav-link" onclick="window.location.href='patient-dashboard.html'">
+                                <i class="bi bi-person"></i> Patient Dashboard
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="#" class="nav-link" onclick="window.location.href='doctor-dashboard.html'">
+                                <i class="bi bi-person-badge"></i> Doctor Dashboard
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="#" class="nav-link" onclick="window.location.href='admin-dashboard.html'">
+                                <i class="bi bi-shield-lock"></i> Admin Dashboard
+                            </a>
+                        </li>
+                    </ul>
+                    <hr class="w-100">
+                    <div class="d-flex flex-column align-items-center align-items-sm-start w-100">
+                        <a href="#" id="sign-out-btn" class="btn btn-outline-danger w-100">
+                            <i class="bi bi-box-arrow-right"></i> Sign Out
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Content -->
+            <div class="col-md-9 col-lg-10 ms-sm-auto main-content">
+                <!-- Top Navigation Bar -->
+                <nav class="navbar navbar-expand-lg bg-white topbar">
+                    <div class="container-fluid">
+                        <button class="navbar-toggler" type="button" id="menu-toggle" data-bs-toggle="collapse" data-bs-target=".sidebar">
+                            <span class="navbar-toggler-icon"></span>
+                        </button>
+                        <div class="d-flex align-items-center ms-auto">
+                            <div class="me-3">
+                                <span class="badge bg-primary" id="user-role">User</span>
+                            </div>
+                            <div class="dropdown">
+                                <a href="#" class="d-flex align-items-center text-decoration-none dropdown-toggle" id="dropdownUser" data-bs-toggle="dropdown">
+                                    <div class="d-flex align-items-center justify-content-center rounded-circle bg-light" style="width: 40px; height: 40px;">
+                                        <i class="bi bi-person text-primary"></i>
+                                    </div>
+                                    <span class="ms-2" id="user-name">User Name</span>
+                                </a>
+                                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdownUser">
+                                    <li><a class="dropdown-item" href="../index.html">Home</a></li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><a class="dropdown-item" href="#" id="sign-out-dropdown-btn">Sign out</a></li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </nav>
+
+                <!-- Alert Container -->
+                <div id="alert-container" class="px-4 pt-3"></div>
+
+                <!-- DSA Features Content -->
+                <div class="px-4">
+                    <h3 class="page-title mt-3">Data Structures & Algorithms Features</h3>
+                    <p class="text-muted">Explore the advanced DSA concepts implemented in the Health Data Information Management System.</p>
+
+                    <!-- DSA Feature Cards -->
+                    <div class="row">
+                        <!-- Priority Queue (Min-Heap) -->
+                        <div class="col-md-6 mb-4">
+                            <div class="card dsa-card h-100">
+                                <div class="card-header bg-primary text-white">
+                                    <h5 class="mb-0"><i class="bi bi-calendar-event me-2"></i>Priority Queue (Min-Heap)</h5>
+                                </div>
+                                <div class="card-body">
+                                    <p>Efficient appointment scheduling based on urgency levels using a min-heap data structure.</p>
+                                    <div class="mb-3">
+                                        <label class="form-label">Test Priority Queue Operations:</label>
+                                        <div class="d-flex gap-2 mb-3">
+                                            <button class="btn btn-outline-primary btn-sm" id="heap-add-appointments">Load Sample Appointments</button>
+                                            <button class="btn btn-outline-primary btn-sm" id="heap-get-next">Get Next Urgent</button>
+                                        </div>
+                                    </div>
+                                    <h6>Results:</h6>
+                                    <div class="result-container" id="heap-results">
+                                        Results will appear here...
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Trie -->
+                        <div class="col-md-6 mb-4">
+                            <div class="card dsa-card h-100">
+                                <div class="card-header bg-success text-white">
+                                    <h5 class="mb-0"><i class="bi bi-search me-2"></i>Trie for Fast Search</h5>
+                                </div>
+                                <div class="card-body">
+                                    <p>Fast patient and disease name lookups using a Trie data structure.</p>
+                                    <div class="mb-3">
+                                        <label class="form-label">Search for patients:</label>
+                                        <div class="d-flex gap-2 mb-3">
+                                            <button class="btn btn-outline-success btn-sm" id="trie-load-data">Load Sample Data</button>
+                                            <input type="text" class="form-control form-control-sm" id="trie-search-input" placeholder="Type to search...">
+                                        </div>
+                                    </div>
+                                    <h6>Search Results:</h6>
+                                    <div class="result-container" id="trie-results">
+                                        Results will appear here...
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Graph -->
+                        <div class="col-md-6 mb-4">
+                            <div class="card dsa-card h-100">
+                                <div class="card-header bg-danger text-white">
+                                    <h5 class="mb-0"><i class="bi bi-diagram-3 me-2"></i>Graph Algorithms</h5>
+                                </div>
+                                <div class="card-body">
+                                    <p>Track disease spread and find optimal doctor referral paths using graph algorithms (BFS and Dijkstra's).</p>
+                                    <div class="mb-3">
+                                        <label class="form-label">Disease Spread Tracking (BFS):</label>
+                                        <div class="d-flex gap-2 mb-3">
+                                            <button class="btn btn-outline-danger btn-sm" id="graph-load-data">Load Disease Data</button>
+                                            <select class="form-select form-select-sm" id="location-select">
+                                                <option value="">Select Location</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <h6>Disease Spread Results:</h6>
+                                    <div class="result-container" id="graph-results">
+                                        Results will appear here...
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Segment Tree -->
+                        <div class="col-md-6 mb-4">
+                            <div class="card dsa-card h-100">
+                                <div class="card-header bg-warning text-dark">
+                                    <h5 class="mb-0"><i class="bi bi-graph-up me-2"></i>Segment Tree</h5>
+                                </div>
+                                <div class="card-body">
+                                    <p>Efficient hospital/doctor performance metrics queries over time ranges using segment trees.</p>
+                                    <div class="mb-3">
+                                        <label class="form-label">Doctor Performance Analysis:</label>
+                                        <div class="d-flex gap-2 mb-3">
+                                            <button class="btn btn-outline-warning btn-sm" id="segment-load-data">Load Performance Data</button>
+                                        </div>
+                                    </div>
+                                    <div class="chart-container">
+                                        <canvas id="performance-chart"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Implementation Details -->
+                    <div class="card mb-4">
+                        <div class="card-header bg-dark text-white">
+                            <h5 class="mb-0">Implementation Details</h5>
+                        </div>
+                        <div class="card-body">
+                            <h6>Data Structures & Algorithms Used</h6>
+                            <ul>
+                                <li><strong>Priority Queue (Min-Heap):</strong> Used for appointment scheduling based on urgency levels.</li>
+                                <li><strong>Trie:</strong> Used for fast patient and disease name searches with autocomplete functionality.</li>
+                                <li><strong>Graph (Adjacency List):</strong> Used for disease spread tracking (BFS) and finding optimal referral paths (Dijkstra's Algorithm).</li>
+                                <li><strong>Segment Tree:</strong> Used for efficient range queries on performance metrics over time periods.</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div id="loading-overlay" class="d-none">
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    
+    <!-- HDIMS Scripts -->
+    <script src="../js/dsa-implementations.js"></script>
+    <script src="../js/auth.js"></script>
+    <script src="../js/utils.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize UI elements
+            setupUI();
+            
+            // Setup DSA demonstration events
+            setupPriorityQueueDemo();
+            setupTrieDemo();
+            setupGraphDemo();
+            setupSegmentTreeDemo();
+        });
+        
+        function setupUI() {
+            // Setup sign out buttons
+            const signOutBtn = document.getElementById('sign-out-btn');
+            const signOutDropdownBtn = document.getElementById('sign-out-dropdown-btn');
+            
+            if (signOutBtn) {
+                signOutBtn.addEventListener('click', function() {
+                    window.location.href = '../index.html';
+                });
+            }
+            
+            if (signOutDropdownBtn) {
+                signOutDropdownBtn.addEventListener('click', function() {
+                    window.location.href = '../index.html';
+                });
+            }
+            
+            // Set user name in the UI
+            const userNameElement = document.getElementById('user-name');
+            if (userNameElement) {
+                const userName = localStorage.getItem('userName') || 'Demo User';
+                userNameElement.textContent = userName;
+            }
+            
+            // User role badge
+            const userRoleBadge = document.getElementById('user-role');
+            if (userRoleBadge) {
+                const userRole = localStorage.getItem('userRole') || 'Demo';
+                userRoleBadge.textContent = userRole.charAt(0).toUpperCase() + userRole.slice(1);
+            }
+        }
+        
+        // Priority Queue (Min-Heap) Demo
+        function setupPriorityQueueDemo() {
+            const loadBtn = document.getElementById('heap-add-appointments');
+            const getNextBtn = document.getElementById('heap-get-next');
+            const resultsContainer = document.getElementById('heap-results');
+            
+            let priorityQueue = new DSA.AppointmentPriorityQueue();
+            
+            loadBtn.addEventListener('click', function() {
+                // Reset and load sample appointments
+                priorityQueue = new DSA.AppointmentPriorityQueue();
+                const appointments = DSA.createSampleAppointments();
+                
+                resultsContainer.innerHTML = '<strong>Loading appointments into priority queue:</strong><br>';
+                
+                appointments.forEach(appointment => {
+                    priorityQueue.enqueue(appointment);
+                    resultsContainer.innerHTML += `Added: ${appointment.patientName} (Urgency: ${appointment.urgency})<br>`;
+                });
+                
+                resultsContainer.innerHTML += `<br><strong>Priority Queue Size: ${priorityQueue.size()}</strong>`;
+            });
+            
+            getNextBtn.addEventListener('click', function() {
+                if (priorityQueue.isEmpty()) {
+                    resultsContainer.innerHTML = 'Priority queue is empty. Please load appointments first.';
+                    return;
+                }
+                
+                const nextAppointment = priorityQueue.dequeue();
+                
+                resultsContainer.innerHTML = '<strong>Next highest priority appointment:</strong><br>';
+                resultsContainer.innerHTML += `Patient: ${nextAppointment.patientName}<br>`;
+                resultsContainer.innerHTML += `Doctor: ${nextAppointment.doctorName}<br>`;
+                resultsContainer.innerHTML += `Date/Time: ${nextAppointment.dateTime}<br>`;
+                resultsContainer.innerHTML += `Reason: ${nextAppointment.reason}<br>`;
+                resultsContainer.innerHTML += `Urgency: ${nextAppointment.urgency}<br>`;
+                resultsContainer.innerHTML += `Status: ${nextAppointment.status}<br>`;
+                resultsContainer.innerHTML += `<br><strong>Remaining Queue Size: ${priorityQueue.size()}</strong>`;
+            });
+        }
+        
+        // Trie Demo
+        function setupTrieDemo() {
+            const loadBtn = document.getElementById('trie-load-data');
+            const searchInput = document.getElementById('trie-search-input');
+            const resultsContainer = document.getElementById('trie-results');
+            
+            let patientTrie = new DSA.Trie();
+            
+            loadBtn.addEventListener('click', function() {
+                // Reset and load sample patient data
+                patientTrie = new DSA.Trie();
+                const patients = DSA.createSamplePatients();
+                
+                resultsContainer.innerHTML = '<strong>Loading patient data into trie:</strong><br>';
+                
+                patients.forEach(patient => {
+                    patientTrie.insert(patient.name, patient);
+                    resultsContainer.innerHTML += `Added: ${patient.name}<br>`;
+                });
+                
+                resultsContainer.innerHTML += '<br><strong>Patient data loaded. Type in the search box to find patients.</strong>';
+            });
+            
+            searchInput.addEventListener('input', function() {
+                const searchTerm = this.value.trim();
+                
+                if (searchTerm.length === 0) {
+                    resultsContainer.innerHTML = 'Type to search for patients...';
+                    return;
+                }
+                
+                // Perform autocomplete search
+                const results = patientTrie.autocomplete(searchTerm);
+                
+                if (results.length === 0) {
+                    resultsContainer.innerHTML = `No patients found matching "${searchTerm}"`;
+                } else {
+                    resultsContainer.innerHTML = `<strong>Found ${results.length} patient(s) matching "${searchTerm}":</strong><br><br>`;
+                    
+                    results.forEach(patient => {
+                        resultsContainer.innerHTML += `<strong>Name:</strong> ${patient.name}<br>`;
+                        resultsContainer.innerHTML += `<strong>ID:</strong> ${patient.id}<br>`;
+                        resultsContainer.innerHTML += `<strong>Email:</strong> ${patient.email}<br>`;
+                        resultsContainer.innerHTML += `<strong>Phone:</strong> ${patient.phone}<br><br>`;
+                    });
+                }
+            });
+        }
+        
+        // Graph Demo
+        function setupGraphDemo() {
+            const loadBtn = document.getElementById('graph-load-data');
+            const locationSelect = document.getElementById('location-select');
+            const resultsContainer = document.getElementById('graph-results');
+            
+            let diseaseGraph = new DSA.Graph();
+            
+            loadBtn.addEventListener('click', function() {
+                // Reset and load sample disease spread data
+                diseaseGraph = new DSA.Graph();
+                const diseaseData = DSA.createSampleDiseaseSpread();
+                
+                // Clear previous options
+                locationSelect.innerHTML = '<option value="">Select Location</option>';
+                
+                resultsContainer.innerHTML = '<strong>Loading disease spread data into graph:</strong><br>';
+                
+                // Add nodes and edges to the graph
+                diseaseData.forEach(data => {
+                    const nodeId = `${data.location}_${data.date}`;
+                    diseaseGraph.addNode(nodeId, data);
+                    resultsContainer.innerHTML += `Added: ${data.location} (${data.diseaseName}, ${data.caseCount} cases)<br>`;
+                    
+                    // Add location to dropdown if not already added
+                    if (!Array.from(locationSelect.options).some(option => option.value === data.location)) {
+                        const option = document.createElement('option');
+                        option.value = data.location;
+                        option.textContent = data.location;
+                        locationSelect.appendChild(option);
+                    }
+                });
+                
+                // Add edges between locations with the same disease
+                const nodes = diseaseGraph.getAllNodes();
+                for (let i = 0; i < nodes.length; i++) {
+                    for (let j = i + 1; j < nodes.length; j++) {
+                        const node1 = diseaseGraph.getNodeData(nodes[i]);
+                        const node2 = diseaseGraph.getNodeData(nodes[j]);
+                        
+                        if (node1.diseaseName === node2.diseaseName) {
+                            // Add bidirectional edges
+                            diseaseGraph.addEdge(nodes[i], nodes[j], 1);
+                            diseaseGraph.addEdge(nodes[j], nodes[i], 1);
+                        }
+                    }
+                }
+                
+                resultsContainer.innerHTML += '<br><strong>Disease spread graph created. Select a location to track spread.</strong>';
+            });
+            
+            locationSelect.addEventListener('change', function() {
+                const location = this.value;
+                
+                if (!location) {
+                    resultsContainer.innerHTML = 'Select a location to track disease spread...';
+                    return;
+                }
+                
+                // Find node IDs for this location
+                const locationNodeIds = diseaseGraph.getAllNodes().filter(nodeId => {
+                    const nodeData = diseaseGraph.getNodeData(nodeId);
+                    return nodeData.location === location;
+                });
+                
+                if (locationNodeIds.length === 0) {
+                    resultsContainer.innerHTML = `No disease data found for location: ${location}`;
+                    return;
+                }
+                
+                // Perform BFS to find disease spread
+                resultsContainer.innerHTML = `<strong>Tracking disease spread from ${location}:</strong><br><br>`;
+                
+                const nodeId = locationNodeIds[0]; // Use the first node for this location
+                const nodeData = diseaseGraph.getNodeData(nodeId);
+                
+                resultsContainer.innerHTML += `Starting Point: ${nodeData.location} (${nodeData.diseaseName}, ${nodeData.caseCount} cases)<br><br>`;
+                
+                const spreadPath = diseaseGraph.bfs(nodeId);
+                
+                if (spreadPath.length <= 1) {
+                    resultsContainer.innerHTML += 'No disease spread detected from this location.';
+                } else {
+                    resultsContainer.innerHTML += '<strong>Disease spread path:</strong><br>';
+                    
+                    spreadPath.forEach((pathNodeId, index) => {
+                        const pathNodeData = diseaseGraph.getNodeData(pathNodeId);
+                        resultsContainer.innerHTML += `${index + 1}. ${pathNodeData.location} (${pathNodeData.caseCount} cases on ${pathNodeData.date})<br>`;
+                    });
+                }
+            });
+        }
+        
+        // Segment Tree Demo
+        function setupSegmentTreeDemo() {
+            const loadBtn = document.getElementById('segment-load-data');
+            const chartCanvas = document.getElementById('performance-chart');
+            
+            let performanceChart = null;
+            
+            loadBtn.addEventListener('click', function() {
+                // Load sample performance metrics
+                const metricsData = DSA.createSamplePerformanceMetrics();
+                
+                // Filter metrics for one doctor and metric type
+                const doctorId = 'D1001';
+                const responseTimeMetrics = metricsData.filter(m => 
+                    m.entityId === doctorId && m.metricType === 'response_time');
+                
+                const satisfactionMetrics = metricsData.filter(m => 
+                    m.entityId === doctorId && m.metricType === 'satisfaction_score');
+                
+                // Prepare data for segment tree
+                const values = responseTimeMetrics.map(m => m.value);
+                const dates = responseTimeMetrics.map(m => m.date);
+                
+                // Create segment tree with sum operation
+                const sumOperation = (a, b) => a + b;
+                const segmentTree = new DSA.SegmentTree(values, dates, sumOperation, 0);
+                
+                // Create a chart to visualize the data
+                if (performanceChart) {
+                    performanceChart.destroy();
+                }
+                
+                performanceChart = new Chart(chartCanvas, {
+                    type: 'line',
+                    data: {
+                        labels: dates,
+                        datasets: [
+                            {
+                                label: 'Response Time (minutes)',
+                                data: responseTimeMetrics.map(m => m.value),
+                                borderColor: 'rgba(255, 99, 132, 1)',
+                                backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                                yAxisID: 'y',
+                            },
+                            {
+                                label: 'Satisfaction Score',
+                                data: satisfactionMetrics.map(m => m.value),
+                                borderColor: 'rgba(54, 162, 235, 1)',
+                                backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                                yAxisID: 'y1',
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: {
+                                type: 'linear',
+                                display: true,
+                                position: 'left',
+                                title: {
+                                    display: true,
+                                    text: 'Response Time (min)'
+                                }
+                            },
+                            y1: {
+                                type: 'linear',
+                                display: true,
+                                position: 'right',
+                                title: {
+                                    display: true,
+                                    text: 'Satisfaction Score'
+                                },
+                                grid: {
+                                    drawOnChartArea: false
+                                }
+                            }
+                        }
+                    }
+                });
+                
+                // Calculate average for date range using segment tree
+                const startDate = dates[0];
+                const endDate = dates[dates.length - 1];
+                const avgResponseTime = segmentTree.queryRange(startDate, endDate) / dates.length;
+                
+                // Add annotation to the chart
+                const annotation = document.createElement('div');
+                annotation.style.textAlign = 'center';
+                annotation.style.marginTop = '10px';
+                annotation.innerHTML = `<strong>Average Response Time (${startDate} to ${endDate}):</strong> ${avgResponseTime.toFixed(1)} minutes`;
+                
+                chartCanvas.parentNode.appendChild(annotation);
+            });
+        }
+    </script>
+</body>
+</html>

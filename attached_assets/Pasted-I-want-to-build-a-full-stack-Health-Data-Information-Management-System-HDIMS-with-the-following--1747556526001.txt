@@ -1,0 +1,134 @@
+I want to build a full-stack Health Data Information & Management System (HDIMS) with the following specifications:
+
+📚 Technologies to Use
+Backend Language: C++
+
+Frontend: HTML, CSS, JavaScript
+
+Authentication: Firebase Authentication (via Firebase Web SDK)
+
+Database: MySQL, hosted locally using XAMPP
+
+Communication Protocol: REST-like API using C++ HTTP server or CGI (Common Gateway Interface)
+
+🧑‍⚕️ System Roles
+The system must support three roles with role-based access control:
+
+Patient
+
+Doctor
+
+Administrator
+
+Users must be authenticated using Firebase Authentication (Email & Password). After login, the user's Firebase UID should be matched to a role stored in the users table in MySQL.
+
+🧠 Backend Responsibilities (C++):
+Firebase Token Verification
+
+Use a C++ library or invoke a small Node.js or Python verification script (if necessary) to validate Firebase tokens.
+
+After verifying the token, extract the Firebase UID and role from MySQL.
+
+MySQL Integration via XAMPP
+
+Use a C++ MySQL client library like MySQL Connector/C++ to:
+
+Store and retrieve user, doctor, patient, and appointment data.
+
+Perform role-based query handling.
+
+Update real-time appointment queues and performance analytics.
+
+REST-like Endpoint Handlers
+Implement HTTP endpoint handlers in C++ (e.g., using Crow, CivetWeb, or raw CGI) to handle requests such as:
+
+POST /appointments/book
+
+GET /doctors/available
+
+GET /patients/search
+
+POST /admin/generate_report
+
+Data Structures and Algorithm Integration
+Implement backend logic using DSA concepts:
+
+Hash Tables: Map Firebase UID to roles.
+
+Tries: Fast autocomplete/search for patient names or diseases.
+
+Min-Heap (Priority Queue): Urgency-based appointment scheduling.
+
+Max-Heap: Finding the most available doctor.
+
+Graphs (Adjacency Lists):
+
+Track disease spread via BFS
+
+Doctor referral paths between hospitals
+
+Use Dijkstra’s Algorithm to route patients to optimal hospitals
+
+Segment Trees: Efficient hospital/doctor performance metrics queries over time ranges.
+
+💾 Frontend Responsibilities:
+Use Firebase Web SDK for authentication (login/signup).
+
+Upon login, obtain the Firebase ID token and attach it to every request made to the C++ backend via HTTP headers.
+
+Create dashboard interfaces:
+
+Patients: Book/view appointments, medical history
+
+Doctors: View schedule, manage patients
+
+Admins: Add doctors, view system reports
+
+⚙️ Database Tables (MySQL via XAMPP)
+Create the following tables:
+
+users(uid, email, role)
+
+patients(patient_id, uid, name, history)
+
+doctors(doctor_id, name, specialization, availability)
+
+appointments(id, patient_id, doctor_id, time, urgency, status)
+
+performance_metrics(hospital_id, doctor_id, avg_response_time, satisfaction_score)
+
+Ensure foreign key relationships are correctly defined.
+
+📌 Additional Requirements
+Use .env file or config headers for DB credentials.
+
+Do not store sensitive medical data in Firebase—only in MySQL.
+
+Separate backend code into modules for:
+
+Authentication
+
+Routing
+
+Database operations
+
+Algorithmic utilities (DSA components)
+
+🛠️ Development Tools
+C++ compiler with C++17 or later
+
+MySQL (through XAMPP)
+
+Firebase Console project with Web SDK enabled
+
+(Optional) CMake for modular C++ builds
+
+📦 Output Expectations
+Clean and modular C++ backend that interfaces with MySQL and validates Firebase tokens.
+
+Frontend with Firebase login and appropriate UI for all roles.
+
+DSA-based logic for scheduling, searching, and analytics.
+
+Instructions for setting up XAMPP, the database schema, and running the backend.
+
