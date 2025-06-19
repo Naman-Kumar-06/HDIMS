@@ -1,4 +1,3 @@
-import routes
 import os
 import logging
 from flask import Flask
@@ -50,3 +49,4 @@ with app.app_context():
     import models  # noqa: F401
     db.create_all()
     logging.info("Database tables created")
+import routes
