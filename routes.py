@@ -936,6 +936,32 @@ def toggle_user_status(user_id):
     
     return redirect(url_for('admin_users'))
 
+@app.route('/init-db-railway-deployment')
+def init_database_railway():
+    """Initialize database for Railway deployment - REMOVE AFTER USE"""
+    try:
+        db.create_all()
+        
+        # Create admin user if not exists
+        if not User.query.filter_by(email='admin@hdims.com').first():
+            admin_user = User(
+                email='admin@hdims.com',
+                role='admin',
+                first_name='System',
+                last_name='Administrator',
+                is_active=True
+            )
+            admin_user.set_password('admin123')  # Change this!
+            db.session.add(admin_user)
+            db.session.commit()
+            
+        # Initialize system data
+        initialize_system_data()
+        
+        return "Database initialized successfully! Please remove this endpoint for security."
+    except Exception as e:
+        return f"Error initializing database: {str(e)}"
+
 @app.route('/admin/analytics')
 @login_required
 def admin_analytics():
