@@ -1,0 +1,255 @@
+{% extends "base.html" %}
+
+{% block title %}Book Appointment - HDIMS{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2 class="text-primary">
+                <i class="fas fa-calendar-plus me-2"></i>Book Appointment
+            </h2>
+            <a href="{{ url_for('patient_dashboard') }}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
+            </a>
+        </div>
+
+        <div class="card shadow-sm">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-stethoscope me-2"></i>Schedule Your Appointment
+                </h5>
+            </div>
+            <div class="card-body p-4">
+                <form method="POST" id="appointmentForm">
+                    <div class="row g-3">
+                        <!-- Doctor Selection -->
+                        <div class="col-12">
+                            <label for="doctor_id" class="form-label">Select Doctor *</label>
+                            <select class="form-select" id="doctor_id" name="doctor_id" required>
+                                <option value="">Choose a doctor from our database</option>
+                                {% for doctor in doctors %}
+                                    <option value="{{ doctor.id }}" 
+                                            data-specialization="{{ doctor.specialization }}"
+                                            data-experience="{{ doctor.experience_years or 0 }}"
+                                            data-fee="{{ doctor.consultation_fee or 0 }}"
+                                            data-rating="{{ doctor.rating or 0.0 }}">
+                                        Dr. {{ doctor.user.first_name }} {{ doctor.user.last_name }} - {{ doctor.specialization }}
+                                        {% if doctor.experience_years %} ({{ doctor.experience_years }} years experience){% endif %}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                            <div id="doctorInfo" class="mt-2" style="display: none;">
+                                <div class="card bg-light">
+                                    <div class="card-body p-3">
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <strong>Experience:</strong> <span id="doctorExperience"></span> years
+                                            </div>
+                                            <div class="col-md-6">
+                                                <strong>Consultation Fee:</strong> $<span id="doctorFee"></span>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <strong>Rating:</strong> 
+                                                <span id="doctorRating"></span>
+                                                <i class="fas fa-star text-warning"></i>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Appointment Date -->
+                        <div class="col-md-6">
+                            <label for="appointment_date" class="form-label">Appointment Date *</label>
+                            <input type="date" class="form-control" id="appointment_date" name="appointment_date" 
+                                   min="{{ (now() + timedelta(days=1)).strftime('%Y-%m-%d') }}" required>
+                        </div>
+                        
+                        <!-- Appointment Time -->
+                        <div class="col-md-6">
+                            <label for="appointment_time" class="form-label">Appointment Time *</label>
+                            <select class="form-select" id="appointment_time" name="appointment_time" required>
+                                <option value="">Select appointment time</option>
+                                <option value="09:00">9:00 AM</option>
+                                <option value="09:30">9:30 AM</option>
+                                <option value="10:00">10:00 AM</option>
+                                <option value="10:30">10:30 AM</option>
+                                <option value="11:00">11:00 AM</option>
+                                <option value="11:30">11:30 AM</option>
+                                <option value="12:00">12:00 PM</option>
+                                <option value="12:30">12:30 PM</option>
+                                <option value="13:00">1:00 PM</option>
+                                <option value="13:30">1:30 PM</option>
+                                <option value="14:00">2:00 PM</option>
+                                <option value="14:30">2:30 PM</option>
+                                <option value="15:00">3:00 PM</option>
+                                <option value="15:30">3:30 PM</option>
+                                <option value="16:00">4:00 PM</option>
+                                <option value="16:30">4:30 PM</option>
+                                <option value="17:00">5:00 PM</option>
+                                <option value="17:30">5:30 PM</option>
+                            </select>
+                        </div>
+                        
+                        <!-- Appointment Type -->
+                        <div class="col-12">
+                            <label for="appointment_type" class="form-label">Appointment Type *</label>
+                            <select class="form-select" id="appointment_type" name="appointment_type" required>
+                                <option value="">Select Type</option>
+                                <option value="consultation">General Consultation</option>
+                                <option value="follow-up">Follow-up Visit</option>
+                                <option value="urgent">Urgent Care</option>
+                                <option value="emergency">Emergency</option>
+                            </select>
+                        </div>
+                        
+                        <!-- Symptoms -->
+                        <div class="col-12">
+                            <label for="symptoms" class="form-label">Symptoms / Reason for Visit</label>
+                            <textarea class="form-control" id="symptoms" name="symptoms" rows="4" 
+                                      placeholder="Please describe your symptoms or reason for the appointment..."></textarea>
+                        </div>
+                        
+                        <!-- Submit Button -->
+                        <div class="col-12 mt-4">
+                            <div class="d-grid">
+                                <button type="submit" class="btn btn-primary btn-lg">
+                                    <i class="fas fa-calendar-check me-2"></i>Book Appointment
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Information Card -->
+        <div class="card mt-4">
+            <div class="card-header bg-info text-white">
+                <h6 class="mb-0">
+                    <i class="fas fa-info-circle me-2"></i>Appointment Booking Information
+                </h6>
+            </div>
+            <div class="card-body">
+                <ul class="mb-0">
+                    <li>Appointments can be booked up to 30 days in advance</li>
+                    <li>Emergency appointments receive higher priority in the queue</li>
+                    <li>You will receive a confirmation email once your appointment is scheduled</li>
+                    <li>Please arrive 15 minutes before your scheduled appointment time</li>
+                    <li>Cancellations must be made at least 24 hours in advance</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const specializationSelect = document.getElementById('specialization');
+    const doctorSelect = document.getElementById('doctor_id');
+    const doctorInfo = document.getElementById('doctorInfo');
+    const appointmentDate = document.getElementById('appointment_date');
+    const appointmentTime = document.getElementById('appointment_time');
+    
+    // Load doctors when specialization changes
+    specializationSelect.addEventListener('change', function() {
+        const specialization = this.value;
+        
+        if (specialization) {
+            fetch(`/api/doctors/${encodeURIComponent(specialization)}`)
+                .then(response => response.json())
+                .then(doctors => {
+                    doctorSelect.innerHTML = '<option value="">Select a doctor</option>';
+                    doctors.forEach(doctor => {
+                        const option = document.createElement('option');
+                        option.value = doctor.id;
+                        option.textContent = `Dr. ${doctor.name}`;
+                        option.dataset.experience = doctor.experience_years;
+                        option.dataset.fee = doctor.consultation_fee;
+                        option.dataset.rating = doctor.rating;
+                        doctorSelect.appendChild(option);
+                    });
+                    doctorSelect.disabled = false;
+                })
+                .catch(error => {
+                    console.error('Error loading doctors:', error);
+                    doctorSelect.innerHTML = '<option value="">Error loading doctors</option>';
+                });
+        } else {
+            doctorSelect.innerHTML = '<option value="">First select a specialization</option>';
+            doctorSelect.disabled = true;
+            doctorInfo.style.display = 'none';
+        }
+        
+        // Reset time slots
+        appointmentTime.innerHTML = '<option value="">Select date and doctor first</option>';
+        appointmentTime.disabled = true;
+    });
+    
+    // Show doctor info when doctor is selected
+    doctorSelect.addEventListener('change', function() {
+        const selectedOption = this.options[this.selectedIndex];
+        
+        if (selectedOption.value) {
+            document.getElementById('doctorExperience').textContent = selectedOption.dataset.experience;
+            document.getElementById('doctorFee').textContent = selectedOption.dataset.fee;
+            document.getElementById('doctorRating').textContent = selectedOption.dataset.rating;
+            doctorInfo.style.display = 'block';
+            
+            // Load available slots if date is selected
+            if (appointmentDate.value) {
+                loadAvailableSlots();
+            }
+        } else {
+            doctorInfo.style.display = 'none';
+        }
+        
+        // Reset time slots
+        appointmentTime.innerHTML = '<option value="">Select date and doctor first</option>';
+        appointmentTime.disabled = true;
+    });
+    
+    // Load available slots when date changes
+    appointmentDate.addEventListener('change', function() {
+        if (doctorSelect.value && this.value) {
+            loadAvailableSlots();
+        }
+    });
+    
+    function loadAvailableSlots() {
+        const doctorId = doctorSelect.value;
+        const date = appointmentDate.value;
+        
+        if (doctorId && date) {
+            fetch(`/api/doctor/${doctorId}/available-slots?date=${date}`)
+                .then(response => response.json())
+                .then(data => {
+                    appointmentTime.innerHTML = '<option value="">Select a time</option>';
+                    
+                    if (data.slots && data.slots.length > 0) {
+                        data.slots.forEach(slot => {
+                            const option = document.createElement('option');
+                            option.value = slot.replace(/[^\d:]/g, '').substring(0, 5); // Convert to HH:MM format
+                            option.textContent = slot;
+                            appointmentTime.appendChild(option);
+                        });
+                        appointmentTime.disabled = false;
+                    } else {
+                        appointmentTime.innerHTML = '<option value="">No available slots</option>';
+                        appointmentTime.disabled = true;
+                    }
+                })
+                .catch(error => {
+                    console.error('Error loading time slots:', error);
+                    appointmentTime.innerHTML = '<option value="">Error loading slots</option>';
+                    appointmentTime.disabled = true;
+                });
+        }
+    }
+});
+</script>
+{% endblock %}

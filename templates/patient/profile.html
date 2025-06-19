@@ -1,0 +1,182 @@
+{% extends "base.html" %}
+
+{% block title %}My Profile - HDIMS{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-10">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2 class="text-primary">
+                <i class="fas fa-user-edit me-2"></i>My Profile
+            </h2>
+            <a href="{{ url_for('patient_dashboard') }}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
+            </a>
+        </div>
+
+        <div class="card shadow-sm">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-user me-2"></i>Patient Information
+                </h5>
+            </div>
+            <div class="card-body p-4">
+                <form method="POST">
+                    <div class="row g-3">
+                        <!-- Personal Information -->
+                        <div class="col-12">
+                            <h6 class="text-primary border-bottom pb-2">
+                                <i class="fas fa-user me-2"></i>Personal Information
+                            </h6>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <label for="first_name" class="form-label">First Name *</label>
+                            <input type="text" class="form-control" id="first_name" name="first_name" 
+                                   value="{{ current_user.first_name }}" required>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <label for="last_name" class="form-label">Last Name *</label>
+                            <input type="text" class="form-control" id="last_name" name="last_name" 
+                                   value="{{ current_user.last_name }}" required>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <label for="email" class="form-label">Email Address</label>
+                            <input type="email" class="form-control" id="email" name="email" 
+                                   value="{{ current_user.email }}" readonly>
+                            <div class="form-text">Email cannot be changed. Contact admin if needed.</div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <label for="phone" class="form-label">Phone Number</label>
+                            <input type="tel" class="form-control" id="phone" name="phone" 
+                                   value="{{ current_user.phone or '' }}">
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <label for="date_of_birth" class="form-label">Date of Birth</label>
+                            <input type="date" class="form-control" id="date_of_birth" name="date_of_birth" 
+                                   value="{{ current_user.date_of_birth.strftime('%Y-%m-%d') if current_user.date_of_birth else '' }}">
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <label for="gender" class="form-label">Gender</label>
+                            <select class="form-select" id="gender" name="gender">
+                                <option value="">Select Gender</option>
+                                <option value="Male" {{ 'selected' if current_user.gender == 'Male' else '' }}>Male</option>
+                                <option value="Female" {{ 'selected' if current_user.gender == 'Female' else '' }}>Female</option>
+                                <option value="Other" {{ 'selected' if current_user.gender == 'Other' else '' }}>Other</option>
+                            </select>
+                        </div>
+                        
+                        <div class="col-12">
+                            <label for="address" class="form-label">Address</label>
+                            <textarea class="form-control" id="address" name="address" rows="3">{{ current_user.address or '' }}</textarea>
+                        </div>
+                        
+                        <!-- Medical Information -->
+                        <div class="col-12 mt-4">
+                            <h6 class="text-primary border-bottom pb-2">
+                                <i class="fas fa-heartbeat me-2"></i>Medical Information
+                            </h6>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <label for="blood_type" class="form-label">Blood Type</label>
+                            <select class="form-select" id="blood_type" name="blood_type">
+                                <option value="">Select Blood Type</option>
+                                <option value="A+" {{ 'selected' if patient.blood_type == 'A+' else '' }}>A+</option>
+                                <option value="A-" {{ 'selected' if patient.blood_type == 'A-' else '' }}>A-</option>
+                                <option value="B+" {{ 'selected' if patient.blood_type == 'B+' else '' }}>B+</option>
+                                <option value="B-" {{ 'selected' if patient.blood_type == 'B-' else '' }}>B-</option>
+                                <option value="AB+" {{ 'selected' if patient.blood_type == 'AB+' else '' }}>AB+</option>
+                                <option value="AB-" {{ 'selected' if patient.blood_type == 'AB-' else '' }}>AB-</option>
+                                <option value="O+" {{ 'selected' if patient.blood_type == 'O+' else '' }}>O+</option>
+                                <option value="O-" {{ 'selected' if patient.blood_type == 'O-' else '' }}>O-</option>
+                            </select>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <label for="allergies" class="form-label">Known Allergies</label>
+                            <input type="text" class="form-control" id="allergies" name="allergies" 
+                                   value="{{ patient.allergies or '' }}" placeholder="e.g., Penicillin, Peanuts">
+                        </div>
+                        
+                        <!-- Emergency Contact -->
+                        <div class="col-12 mt-4">
+                            <h6 class="text-primary border-bottom pb-2">
+                                <i class="fas fa-phone me-2"></i>Emergency Contact
+                            </h6>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <label for="emergency_contact_name" class="form-label">Emergency Contact Name</label>
+                            <input type="text" class="form-control" id="emergency_contact_name" name="emergency_contact_name" 
+                                   value="{{ patient.emergency_contact_name or '' }}">
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <label for="emergency_contact_phone" class="form-label">Emergency Contact Phone</label>
+                            <input type="tel" class="form-control" id="emergency_contact_phone" name="emergency_contact_phone" 
+                                   value="{{ patient.emergency_contact_phone or '' }}">
+                        </div>
+                        
+                        <!-- Insurance Information -->
+                        <div class="col-12 mt-4">
+                            <h6 class="text-primary border-bottom pb-2">
+                                <i class="fas fa-shield-alt me-2"></i>Insurance Information
+                            </h6>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <label for="insurance_provider" class="form-label">Insurance Provider</label>
+                            <input type="text" class="form-control" id="insurance_provider" name="insurance_provider" 
+                                   value="{{ patient.insurance_provider or '' }}">
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <label for="insurance_number" class="form-label">Insurance Number</label>
+                            <input type="text" class="form-control" id="insurance_number" name="insurance_number" 
+                                   value="{{ patient.insurance_number or '' }}">
+                        </div>
+                        
+                        <div class="col-12 mt-4">
+                            <div class="d-flex gap-3">
+                                <button type="submit" class="btn btn-primary btn-lg">
+                                    <i class="fas fa-save me-2"></i>Update Profile
+                                </button>
+                                <a href="{{ url_for('patient_dashboard') }}" class="btn btn-outline-secondary btn-lg">
+                                    <i class="fas fa-times me-2"></i>Cancel
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Patient ID Card -->
+        <div class="card mt-4">
+            <div class="card-header bg-light">
+                <h6 class="mb-0">
+                    <i class="fas fa-id-card me-2"></i>Patient ID Information
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <strong>Patient ID:</strong>
+                        <span class="ms-2 font-monospace">{{ patient.patient_id }}</span>
+                    </div>
+                    <div class="col-md-6">
+                        <strong>Member Since:</strong>
+                        <span class="ms-2">{{ current_user.created_at.strftime('%B %d, %Y') }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

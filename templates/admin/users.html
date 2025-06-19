@@ -1,0 +1,389 @@
+{% extends "base.html" %}
+
+{% block title %}User Management - HDIMS{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2 class="text-primary">
+                <i class="fas fa-users me-2"></i>User Management
+            </h2>
+            <a href="{{ url_for('admin_dashboard') }}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Filter and Search -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                <form method="GET" class="d-flex align-items-center gap-3">
+                    <div class="flex-grow-1">
+                        <div class="input-group">
+                            <span class="input-group-text">
+                                <i class="fas fa-search"></i>
+                            </span>
+                            <input type="text" class="form-control" name="search" 
+                                   placeholder="Search users by name, email, or ID..."
+                                   value="{{ request.args.get('search', '') }}">
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <select class="form-select" name="role" onchange="this.form.submit()">
+                            <option value="">All Roles</option>
+                            <option value="patient" {{ 'selected' if role_filter == 'patient' else '' }}>Patients</option>
+                            <option value="doctor" {{ 'selected' if role_filter == 'doctor' else '' }}>Doctors</option>
+                            <option value="admin" {{ 'selected' if role_filter == 'admin' else '' }}>Admins</option>
+                        </select>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-search me-2"></i>Search
+                    </button>
+                    
+                    {% if request.args.get('search') or role_filter %}
+                        <a href="{{ url_for('admin_users') }}" class="btn btn-outline-secondary">
+                            <i class="fas fa-times me-2"></i>Clear
+                        </a>
+                    {% endif %}
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- User Statistics -->
+<div class="row g-4 mb-4">
+    <div class="col-md-3">
+        <div class="card bg-primary text-white">
+            <div class="card-body text-center">
+                <h4 class="mb-0">{{ users.total }}</h4>
+                <small>Total Users</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-success text-white">
+            <div class="card-body text-center">
+                <h4 class="mb-0">{{ users.items|selectattr('is_active', 'equalto', true)|list|length }}</h4>
+                <small>Active Users</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-warning text-white">
+            <div class="card-body text-center">
+                <h4 class="mb-0">{{ users.items|selectattr('is_active', 'equalto', false)|list|length }}</h4>
+                <small>Inactive Users</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-info text-white">
+            <div class="card-body text-center">
+                <h4 class="mb-0">{{ users.page }} / {{ users.pages }}</h4>
+                <small>Page</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Users Table -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header bg-light">
+                <h5 class="mb-0">
+                    <i class="fas fa-list me-2"></i>Users List
+                    {% if role_filter %}
+                        <span class="badge bg-primary ms-2">{{ role_filter.title() }}s</span>
+                    {% endif %}
+                </h5>
+            </div>
+            <div class="card-body p-0">
+                {% if users.items %}
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>User</th>
+                                    <th>Role</th>
+                                    <th>Contact</th>
+                                    <th>Status</th>
+                                    <th>Joined</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for user in users.items %}
+                                    <tr>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <div class="me-3">
+                                                    {% if user.role == 'patient' %}
+                                                        <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center" 
+                                                             style="width: 40px; height: 40px;">
+                                                            <i class="fas fa-user"></i>
+                                                        </div>
+                                                    {% elif user.role == 'doctor' %}
+                                                        <div class="bg-success text-white rounded-circle d-flex align-items-center justify-content-center" 
+                                                             style="width: 40px; height: 40px;">
+                                                            <i class="fas fa-user-md"></i>
+                                                        </div>
+                                                    {% else %}
+                                                        <div class="bg-warning text-white rounded-circle d-flex align-items-center justify-content-center" 
+                                                             style="width: 40px; height: 40px;">
+                                                            <i class="fas fa-user-shield"></i>
+                                                        </div>
+                                                    {% endif %}
+                                                </div>
+                                                <div>
+                                                    <strong>{{ user.full_name }}</strong>
+                                                    <br>
+                                                    <small class="text-muted">
+                                                        {% if user.role == 'patient' and user.patient_profile %}
+                                                            ID: {{ user.patient_profile.patient_id }}
+                                                        {% elif user.role == 'doctor' and user.doctor_profile %}
+                                                            ID: {{ user.doctor_profile.doctor_id }}
+                                                        {% else %}
+                                                            User ID: {{ user.id }}
+                                                        {% endif %}
+                                                    </small>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            {% if user.role == 'patient' %}
+                                                <span class="badge bg-primary">Patient</span>
+                                            {% elif user.role == 'doctor' %}
+                                                <span class="badge bg-success">Doctor</span>
+                                                {% if user.doctor_profile %}
+                                                    <br><small class="text-muted">{{ user.doctor_profile.specialization }}</small>
+                                                {% endif %}
+                                            {% elif user.role == 'admin' %}
+                                                <span class="badge bg-warning">Admin</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <div>
+                                                <small><i class="fas fa-envelope me-1"></i>{{ user.email }}</small>
+                                            </div>
+                                            {% if user.phone %}
+                                                <div>
+                                                    <small><i class="fas fa-phone me-1"></i>{{ user.phone }}</small>
+                                                </div>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if user.is_active %}
+                                                <span class="badge bg-success">Active</span>
+                                            {% else %}
+                                                <span class="badge bg-danger">Inactive</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <small>{{ user.created_at.strftime('%m/%d/%Y') }}</small>
+                                        </td>
+                                        <td>
+                                            <div class="btn-group btn-group-sm">
+                                                <button class="btn btn-outline-info" data-bs-toggle="modal" 
+                                                        data-bs-target="#viewModal{{ user.id }}">
+                                                    <i class="fas fa-eye"></i>
+                                                </button>
+                                                
+                                                {% if user.id != current_user.id %}
+                                                    <form method="POST" action="{{ url_for('toggle_user_status', user_id=user.id) }}" 
+                                                          style="display: inline;">
+                                                        {% if user.is_active %}
+                                                            <button type="submit" class="btn btn-outline-warning" 
+                                                                    onclick="return confirm('Are you sure you want to deactivate this user?')">
+                                                                <i class="fas fa-user-slash"></i>
+                                                            </button>
+                                                        {% else %}
+                                                            <button type="submit" class="btn btn-outline-success" 
+                                                                    onclick="return confirm('Are you sure you want to activate this user?')">
+                                                                <i class="fas fa-user-check"></i>
+                                                            </button>
+                                                        {% endif %}
+                                                    </form>
+                                                {% endif %}
+                                            </div>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="text-center py-5">
+                        <i class="fas fa-users fa-4x text-muted mb-3"></i>
+                        <h4 class="text-muted">No Users Found</h4>
+                        <p class="text-muted">
+                            {% if request.args.get('search') or role_filter %}
+                                No users match your search criteria.
+                            {% else %}
+                                No users in the system yet.
+                            {% endif %}
+                        </p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Pagination -->
+        {% if users.pages > 1 %}
+            <nav aria-label="User pagination" class="mt-4">
+                <ul class="pagination justify-content-center">
+                    {% if users.has_prev %}
+                        <li class="page-item">
+                            <a class="page-link" href="{{ url_for('admin_users', page=users.prev_num, role=role_filter, search=request.args.get('search', '')) }}">
+                                <i class="fas fa-chevron-left"></i>
+                            </a>
+                        </li>
+                    {% endif %}
+                    
+                    {% for page_num in users.iter_pages() %}
+                        {% if page_num %}
+                            {% if page_num != users.page %}
+                                <li class="page-item">
+                                    <a class="page-link" href="{{ url_for('admin_users', page=page_num, role=role_filter, search=request.args.get('search', '')) }}">
+                                        {{ page_num }}
+                                    </a>
+                                </li>
+                            {% else %}
+                                <li class="page-item active">
+                                    <span class="page-link">{{ page_num }}</span>
+                                </li>
+                            {% endif %}
+                        {% else %}
+                            <li class="page-item disabled">
+                                <span class="page-link">…</span>
+                            </li>
+                        {% endif %}
+                    {% endfor %}
+                    
+                    {% if users.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="{{ url_for('admin_users', page=users.next_num, role=role_filter, search=request.args.get('search', '')) }}">
+                                <i class="fas fa-chevron-right"></i>
+                            </a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </nav>
+        {% endif %}
+    </div>
+</div>
+
+<!-- View User Modals -->
+{% for user in users.items %}
+    <div class="modal fade" id="viewModal{{ user.id }}" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="fas fa-user me-2"></i>{{ user.full_name }}
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <strong>Role:</strong>
+                            <span class="badge bg-{{ 'primary' if user.role == 'patient' else 'success' if user.role == 'doctor' else 'warning' }} ms-2">
+                                {{ user.role.title() }}
+                            </span>
+                        </div>
+                        <div class="col-md-6">
+                            <strong>Status:</strong>
+                            <span class="badge bg-{{ 'success' if user.is_active else 'danger' }} ms-2">
+                                {{ 'Active' if user.is_active else 'Inactive' }}
+                            </span>
+                        </div>
+                        <div class="col-md-6">
+                            <strong>Email:</strong> {{ user.email }}
+                        </div>
+                        <div class="col-md-6">
+                            <strong>Phone:</strong> {{ user.phone or 'Not provided' }}
+                        </div>
+                        <div class="col-md-6">
+                            <strong>Gender:</strong> {{ user.gender or 'Not specified' }}
+                        </div>
+                        <div class="col-md-6">
+                            <strong>Date of Birth:</strong> 
+                            {{ user.date_of_birth.strftime('%B %d, %Y') if user.date_of_birth else 'Not provided' }}
+                        </div>
+                        {% if user.address %}
+                            <div class="col-12">
+                                <strong>Address:</strong> {{ user.address }}
+                            </div>
+                        {% endif %}
+                        
+                        {% if user.role == 'patient' and user.patient_profile %}
+                            <div class="col-12"><hr></div>
+                            <div class="col-12">
+                                <h6 class="text-primary">Patient Information</h6>
+                            </div>
+                            <div class="col-md-6">
+                                <strong>Patient ID:</strong> {{ user.patient_profile.patient_id }}
+                            </div>
+                            <div class="col-md-6">
+                                <strong>Blood Type:</strong> {{ user.patient_profile.blood_type or 'Not specified' }}
+                            </div>
+                            <div class="col-12">
+                                <strong>Allergies:</strong> {{ user.patient_profile.allergies or 'None known' }}
+                            </div>
+                            <div class="col-md-6">
+                                <strong>Emergency Contact:</strong> {{ user.patient_profile.emergency_contact_name or 'Not provided' }}
+                            </div>
+                            <div class="col-md-6">
+                                <strong>Emergency Phone:</strong> {{ user.patient_profile.emergency_contact_phone or 'Not provided' }}
+                            </div>
+                        {% elif user.role == 'doctor' and user.doctor_profile %}
+                            <div class="col-12"><hr></div>
+                            <div class="col-12">
+                                <h6 class="text-success">Doctor Information</h6>
+                            </div>
+                            <div class="col-md-6">
+                                <strong>Doctor ID:</strong> {{ user.doctor_profile.doctor_id }}
+                            </div>
+                            <div class="col-md-6">
+                                <strong>License Number:</strong> {{ user.doctor_profile.license_number }}
+                            </div>
+                            <div class="col-md-6">
+                                <strong>Specialization:</strong> {{ user.doctor_profile.specialization }}
+                            </div>
+                            <div class="col-md-6">
+                                <strong>Experience:</strong> {{ user.doctor_profile.experience_years }} years
+                            </div>
+                            <div class="col-md-6">
+                                <strong>Consultation Fee:</strong> ${{ "%.2f"|format(user.doctor_profile.consultation_fee) }}
+                            </div>
+                            <div class="col-md-6">
+                                <strong>Rating:</strong> {{ "%.1f"|format(user.doctor_profile.rating) }} 
+                                <i class="fas fa-star text-warning"></i>
+                            </div>
+                        {% endif %}
+                        
+                        <div class="col-12"><hr></div>
+                        <div class="col-md-6">
+                            <strong>Joined:</strong> {{ user.created_at.strftime('%B %d, %Y at %I:%M %p') }}
+                        </div>
+                        <div class="col-md-6">
+                            <strong>Last Updated:</strong> {{ user.updated_at.strftime('%B %d, %Y at %I:%M %p') }}
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endfor %}
+{% endblock %}

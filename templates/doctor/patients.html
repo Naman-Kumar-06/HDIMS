@@ -1,0 +1,392 @@
+{% extends "base.html" %}
+
+{% block title %}My Patients - HDIMS{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2 class="text-primary">
+                <i class="fas fa-users me-2"></i>My Patients
+            </h2>
+            <a href="{{ url_for('doctor_dashboard') }}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Patient Statistics -->
+<div class="row g-4 mb-4">
+    <div class="col-md-3">
+        <div class="card bg-primary text-white">
+            <div class="card-body text-center">
+                <h3 class="mb-0">{{ patients|length }}</h3>
+                <small>Total Patients</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-success text-white">
+            <div class="card-body text-center">
+                <h3 class="mb-0">{{ patient_stats.values()|map(attribute='total_appointments')|sum }}</h3>
+                <small>Total Appointments</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-info text-white">
+            <div class="card-body text-center">
+                <h3 class="mb-0">{{ patients|selectattr('user.gender', 'equalto', 'Female')|list|length }}</h3>
+                <small>Female Patients</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-warning text-white">
+            <div class="card-body text-center">
+                <h3 class="mb-0">{{ patients|selectattr('user.gender', 'equalto', 'Male')|list|length }}</h3>
+                <small>Male Patients</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Search and Filter -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                <div class="row g-3 align-items-center">
+                    <div class="col-md-6">
+                        <div class="input-group">
+                            <span class="input-group-text">
+                                <i class="fas fa-search"></i>
+                            </span>
+                            <input type="text" class="form-control" id="patientSearch" 
+                                   placeholder="Search patients by name, ID, or email...">
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <select class="form-select" id="genderFilter">
+                            <option value="">All Genders</option>
+                            <option value="Male">Male</option>
+                            <option value="Female">Female</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <select class="form-select" id="sortBy">
+                            <option value="name">Sort by Name</option>
+                            <option value="last_appointment">Last Appointment</option>
+                            <option value="total_appointments">Total Appointments</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Patients List -->
+<div class="row" id="patientsList">
+    {% if patients %}
+        {% for patient in patients %}
+            <div class="col-12 patient-card" 
+                 data-name="{{ patient.user.full_name.lower() }}"
+                 data-id="{{ patient.patient_id.lower() }}"
+                 data-email="{{ patient.user.email.lower() }}"
+                 data-gender="{{ patient.user.gender or '' }}">
+                <div class="card shadow-sm mb-3">
+                    <div class="card-body">
+                        <div class="row align-items-center">
+                            <div class="col-md-3">
+                                <div class="d-flex align-items-center">
+                                    <div class="me-3">
+                                        <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center" 
+                                             style="width: 50px; height: 50px;">
+                                            <i class="fas fa-user fa-lg"></i>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <h6 class="mb-1">{{ patient.user.full_name }}</h6>
+                                        <small class="text-muted">ID: {{ patient.patient_id }}</small>
+                                        <div class="mt-1">
+                                            {% if patient.user.gender %}
+                                                <span class="badge bg-info">{{ patient.user.gender }}</span>
+                                            {% endif %}
+                                            {% if patient.user.date_of_birth %}
+                                                <span class="badge bg-secondary">Age: {{ calculate_age(patient.user.date_of_birth) }}</span>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-3">
+                                <div>
+                                    <small class="text-muted">
+                                        <i class="fas fa-envelope me-1"></i>{{ patient.user.email }}
+                                    </small>
+                                </div>
+                                {% if patient.user.phone %}
+                                    <div>
+                                        <small class="text-muted">
+                                            <i class="fas fa-phone me-1"></i>{{ patient.user.phone }}
+                                        </small>
+                                    </div>
+                                {% endif %}
+                                {% if patient.blood_type %}
+                                    <div>
+                                        <small class="text-muted">
+                                            <i class="fas fa-tint me-1"></i>Blood Type: {{ patient.blood_type }}
+                                        </small>
+                                    </div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="col-md-3">
+                                {% set stats = patient_stats[patient.id] %}
+                                <div class="text-center">
+                                    <div class="row">
+                                        <div class="col-6">
+                                            <div class="fw-bold text-primary">{{ stats.total_appointments }}</div>
+                                            <small class="text-muted">Appointments</small>
+                                        </div>
+                                        <div class="col-6">
+                                            <div class="fw-bold text-success">{{ stats.total_records }}</div>
+                                            <small class="text-muted">Records</small>
+                                        </div>
+                                    </div>
+                                    {% if stats.last_appointment %}
+                                        <div class="mt-1">
+                                            <small class="text-muted">
+                                                Last visit: {{ stats.last_appointment.appointment_date.strftime('%m/%d/%Y') }}
+                                            </small>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-3 text-end">
+                                <div class="btn-group-vertical btn-group-sm">
+                                    <button class="btn btn-outline-primary" data-bs-toggle="modal" 
+                                            data-bs-target="#patientModal{{ patient.id }}">
+                                        <i class="fas fa-eye me-1"></i>View Details
+                                    </button>
+                                    <a href="{{ url_for('doctor_view_patient_records', patient_id=patient.id) }}" 
+                                       class="btn btn-outline-success">
+                                        <i class="fas fa-file-medical me-1"></i>Medical Records
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        {% if patient.allergies and patient.allergies != 'None known' %}
+                            <div class="row mt-3">
+                                <div class="col-12">
+                                    <div class="alert alert-warning py-2">
+                                        <small>
+                                            <i class="fas fa-exclamation-triangle me-1"></i>
+                                            <strong>Allergies:</strong> {{ patient.allergies }}
+                                        </small>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    {% else %}
+        <div class="col-12">
+            <div class="card text-center py-5">
+                <div class="card-body">
+                    <i class="fas fa-users fa-4x text-muted mb-3"></i>
+                    <h4 class="text-muted">No Patients Yet</h4>
+                    <p class="text-muted">You haven't seen any patients yet. Patients will appear here after their first appointment with you.</p>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+</div>
+
+<!-- Patient Detail Modals -->
+{% for patient in patients %}
+    <!-- Patient Details Modal -->
+    <div class="modal fade" id="patientModal{{ patient.id }}" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="fas fa-user me-2"></i>{{ patient.user.full_name }}
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <strong>Patient ID:</strong> {{ patient.patient_id }}
+                        </div>
+                        <div class="col-md-6">
+                            <strong>Email:</strong> {{ patient.user.email }}
+                        </div>
+                        <div class="col-md-6">
+                            <strong>Phone:</strong> {{ patient.user.phone or 'Not provided' }}
+                        </div>
+                        <div class="col-md-6">
+                            <strong>Gender:</strong> {{ patient.user.gender or 'Not specified' }}
+                        </div>
+                        <div class="col-md-6">
+                            <strong>Date of Birth:</strong> 
+                            {{ patient.user.date_of_birth.strftime('%B %d, %Y') if patient.user.date_of_birth else 'Not provided' }}
+                        </div>
+                        <div class="col-md-6">
+                            <strong>Age:</strong> 
+                            {{ calculate_age(patient.user.date_of_birth) if patient.user.date_of_birth else 'Unknown' }}
+                        </div>
+                        <div class="col-md-6">
+                            <strong>Blood Type:</strong> {{ patient.blood_type or 'Not specified' }}
+                        </div>
+                        <div class="col-md-6">
+                            <strong>Insurance:</strong> {{ patient.insurance_provider or 'Not provided' }}
+                        </div>
+                        {% if patient.user.address %}
+                            <div class="col-12">
+                                <strong>Address:</strong> {{ patient.user.address }}
+                            </div>
+                        {% endif %}
+                        <div class="col-12">
+                            <strong>Allergies:</strong> 
+                            <span class="{{ 'text-danger' if patient.allergies and patient.allergies != 'None known' else '' }}">
+                                {{ patient.allergies or 'None known' }}
+                            </span>
+                        </div>
+                        <div class="col-md-6">
+                            <strong>Emergency Contact:</strong> {{ patient.emergency_contact_name or 'Not provided' }}
+                        </div>
+                        <div class="col-md-6">
+                            <strong>Emergency Phone:</strong> {{ patient.emergency_contact_phone or 'Not provided' }}
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Medical History Modal -->
+    <div class="modal fade" id="historyModal{{ patient.id }}" tabindex="-1">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="fas fa-history me-2"></i>Medical History - {{ patient.user.full_name }}
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    {% set patient_appointments = patient.appointments|selectattr('doctor_id', 'equalto', current_user.doctor_profile.id)|sort(attribute='appointment_date', reverse=true) %}
+                    {% set patient_records = patient.medical_records|selectattr('doctor_id', 'equalto', current_user.doctor_profile.id)|sort(attribute='record_date', reverse=true) %}
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6 class="text-primary">Appointments History</h6>
+                            {% if patient_appointments %}
+                                {% for appointment in patient_appointments %}
+                                    <div class="card mb-2">
+                                        <div class="card-body py-2">
+                                            <div class="d-flex justify-content-between">
+                                                <div>
+                                                    <strong>{{ appointment.appointment_date.strftime('%B %d, %Y') }}</strong>
+                                                    <br><small class="text-muted">{{ appointment.appointment_type.title() }}</small>
+                                                </div>
+                                                <div>
+                                                    <span class="badge bg-{{ 'success' if appointment.status == 'completed' else 'primary' if appointment.status == 'scheduled' else 'secondary' }}">
+                                                        {{ appointment.status.title() }}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            {% else %}
+                                <p class="text-muted">No appointment history.</p>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <h6 class="text-primary">Medical Records</h6>
+                            {% if patient_records %}
+                                {% for record in patient_records %}
+                                    <div class="card mb-2">
+                                        <div class="card-body py-2">
+                                            <div>
+                                                <strong>{{ record.record_date.strftime('%B %d, %Y') }}</strong>
+                                                <br><small class="text-muted">{{ record.diagnosis or 'General consultation' }}</small>
+                                                {% if record.follow_up_required %}
+                                                    <br><span class="badge bg-warning">Follow-up Required</span>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            {% else %}
+                                <p class="text-muted">No medical records.</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endfor %}
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.getElementById('patientSearch');
+    const genderFilter = document.getElementById('genderFilter');
+    const sortBy = document.getElementById('sortBy');
+    const patientCards = document.querySelectorAll('.patient-card');
+
+    function filterAndSortPatients() {
+        const searchTerm = searchInput.value.toLowerCase();
+        const selectedGender = genderFilter.value;
+        const sortCriteria = sortBy.value;
+
+        // Filter patients
+        patientCards.forEach(card => {
+            const name = card.dataset.name;
+            const id = card.dataset.id;
+            const email = card.dataset.email;
+            const gender = card.dataset.gender;
+
+            const matchesSearch = name.includes(searchTerm) || 
+                                id.includes(searchTerm) || 
+                                email.includes(searchTerm);
+            const matchesGender = !selectedGender || gender === selectedGender;
+
+            if (matchesSearch && matchesGender) {
+                card.style.display = 'block';
+            } else {
+                card.style.display = 'none';
+            }
+        });
+
+        // Sort visible patients (basic implementation)
+        // In a real application, you would implement proper sorting
+    }
+
+    searchInput.addEventListener('input', filterAndSortPatients);
+    genderFilter.addEventListener('change', filterAndSortPatients);
+    sortBy.addEventListener('change', filterAndSortPatients);
+});
+</script>
+{% endblock %}

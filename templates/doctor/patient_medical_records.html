@@ -1,0 +1,221 @@
+{% extends "base.html" %}
+
+{% block title %}Patient Medical Records - HDIMS{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-12">
+            <!-- Header -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h2 class="mb-1">
+                        <i class="fas fa-file-medical text-primary me-2"></i>
+                        Medical Records
+                    </h2>
+                    <p class="text-muted mb-0">
+                        Patient: {{ patient.user.full_name() }} ({{ patient.patient_id }})
+                    </p>
+                </div>
+                <a href="{{ url_for('doctor_patients') }}" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left me-1"></i>
+                    Back to Patients
+                </a>
+            </div>
+
+            <!-- Patient Information Card -->
+            <div class="card mb-4">
+                <div class="card-header bg-light">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-user text-primary me-2"></i>
+                        Patient Information
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p><strong>Name:</strong> {{ patient.user.full_name() }}</p>
+                            <p><strong>Patient ID:</strong> {{ patient.patient_id }}</p>
+                            <p><strong>Email:</strong> {{ patient.user.email }}</p>
+                            <p><strong>Phone:</strong> {{ patient.user.phone or 'Not provided' }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>Date of Birth:</strong> 
+                                {% if patient.user.date_of_birth %}
+                                    {{ patient.user.date_of_birth.strftime('%B %d, %Y') }}
+                                    (Age: {{ calculate_age(patient.user.date_of_birth) }})
+                                {% else %}
+                                    Not provided
+                                {% endif %}
+                            </p>
+                            <p><strong>Gender:</strong> {{ patient.user.gender or 'Not specified' }}</p>
+                            <p><strong>Blood Type:</strong> {{ patient.blood_type or 'Not specified' }}</p>
+                            <p><strong>Allergies:</strong> {{ patient.allergies or 'None listed' }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Medical Records -->
+            {% if medical_records %}
+                <div class="row">
+                    {% for record in medical_records %}
+                    <div class="col-md-12 mb-4">
+                        <div class="card medical-record-card">
+                            <div class="card-header">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <h5 class="card-title mb-0">
+                                        <i class="fas fa-notes-medical text-primary me-2"></i>
+                                        Medical Record - {{ record.record_date.strftime('%B %d, %Y') }}
+                                    </h5>
+                                    <span class="badge bg-primary">{{ record.record_id }}</span>
+                                </div>
+                                <div class="d-flex justify-content-between align-items-center mt-2">
+                                    <small class="text-muted">
+                                        <i class="fas fa-user-md me-1"></i>
+                                        Dr. {{ record.doctor.user.full_name() }}
+                                        ({{ record.doctor.specialization }})
+                                    </small>
+                                    <small class="text-muted">
+                                        <i class="fas fa-clock me-1"></i>
+                                        {{ record.created_at.strftime('%I:%M %p') }}
+                                    </small>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    {% if record.symptoms %}
+                                    <div class="col-md-6 mb-3">
+                                        <h6 class="text-primary">
+                                            <i class="fas fa-stethoscope me-1"></i>
+                                            Symptoms
+                                        </h6>
+                                        <p class="mb-0">{{ record.symptoms }}</p>
+                                    </div>
+                                    {% endif %}
+
+                                    {% if record.diagnosis %}
+                                    <div class="col-md-6 mb-3">
+                                        <h6 class="text-success">
+                                            <i class="fas fa-diagnosis me-1"></i>
+                                            Diagnosis
+                                        </h6>
+                                        <p class="mb-0">{{ record.diagnosis }}</p>
+                                    </div>
+                                    {% endif %}
+
+                                    {% if record.treatment %}
+                                    <div class="col-md-6 mb-3">
+                                        <h6 class="text-info">
+                                            <i class="fas fa-procedures me-1"></i>
+                                            Treatment
+                                        </h6>
+                                        <p class="mb-0">{{ record.treatment }}</p>
+                                    </div>
+                                    {% endif %}
+
+                                    {% if record.prescription %}
+                                    <div class="col-md-6 mb-3">
+                                        <h6 class="text-warning">
+                                            <i class="fas fa-pills me-1"></i>
+                                            Prescription
+                                        </h6>
+                                        <p class="mb-0">{{ record.prescription }}</p>
+                                    </div>
+                                    {% endif %}
+
+                                    {% if record.lab_results %}
+                                    <div class="col-md-12 mb-3">
+                                        <h6 class="text-secondary">
+                                            <i class="fas fa-flask me-1"></i>
+                                            Lab Results
+                                        </h6>
+                                        <p class="mb-0">{{ record.lab_results }}</p>
+                                    </div>
+                                    {% endif %}
+
+                                    {% if record.notes %}
+                                    <div class="col-md-12 mb-3">
+                                        <h6 class="text-dark">
+                                            <i class="fas fa-sticky-note me-1"></i>
+                                            Additional Notes
+                                        </h6>
+                                        <p class="mb-0">{{ record.notes }}</p>
+                                    </div>
+                                    {% endif %}
+
+                                    {% if record.follow_up_required %}
+                                    <div class="col-md-12">
+                                        <div class="alert alert-info mb-0">
+                                            <i class="fas fa-calendar-check me-2"></i>
+                                            <strong>Follow-up Required:</strong>
+                                            {% if record.follow_up_date %}
+                                                Scheduled for {{ record.follow_up_date.strftime('%B %d, %Y') }}
+                                            {% else %}
+                                                Date to be determined
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="card-footer text-muted">
+                                <small>
+                                    <i class="fas fa-id-badge me-1"></i>
+                                    Record ID: {{ record.record_id }}
+                                    {% if record.appointment_id %}
+                                        | Appointment ID: {{ record.appointment_id }}
+                                    {% endif %}
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="card">
+                    <div class="card-body text-center py-5">
+                        <i class="fas fa-file-medical fa-3x text-muted mb-3"></i>
+                        <h4 class="text-muted">No Medical Records Found</h4>
+                        <p class="text-muted">
+                            No medical records have been created for this patient yet.
+                        </p>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<style>
+.medical-record-card {
+    border-left: 4px solid #007bff;
+    transition: all 0.3s ease;
+}
+
+.medical-record-card:hover {
+    box-shadow: 0 4px 15px rgba(0,123,255,0.1);
+    transform: translateY(-2px);
+}
+
+.card-header {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border-bottom: 1px solid #dee2e6;
+}
+
+.badge {
+    font-size: 0.75rem;
+}
+
+h6 {
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.alert-info {
+    background-color: #e3f2fd;
+    border-color: #bbdefb;
+    color: #0d47a1;
+}
+</style>
+{% endblock %}

@@ -1,0 +1,192 @@
+{% extends "base.html" %}
+
+{% block title %}Welcome to HDIMS{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <!-- Hero Section -->
+        <div class="hero-section bg-primary text-white rounded-3 p-5 mb-5">
+            <div class="row align-items-center">
+                <div class="col-lg-8">
+                    <h1 class="display-4 fw-bold mb-3">
+                        <i class="fas fa-hospital-alt me-3"></i>HDIMS
+                    </h1>
+                    <h2 class="h3 mb-4">Health Data Information Management System</h2>
+                    <p class="lead mb-4">
+                        Advanced healthcare management platform with intelligent data structures for optimized patient care, 
+                        appointment scheduling, and medical records management.
+                    </p>
+                    <div class="d-flex gap-3">
+                        <a href="{{ url_for('register') }}" class="btn btn-light btn-lg">
+                            <i class="fas fa-user-plus me-2"></i>Register as Patient
+                        </a>
+                        <a href="{{ url_for('login') }}" class="btn btn-outline-light btn-lg">
+                            <i class="fas fa-sign-in-alt me-2"></i>Login
+                        </a>
+                    </div>
+                </div>
+                <div class="col-lg-4 text-center">
+                    <i class="fas fa-heartbeat" style="font-size: 8rem; opacity: 0.3;"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Features Section -->
+        <div class="row g-4 mb-5">
+            <div class="col-md-4">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-body text-center p-4">
+                        <div class="feature-icon text-primary mb-3">
+                            <i class="fas fa-user-injured fa-3x"></i>
+                        </div>
+                        <h5 class="card-title">Patient Management</h5>
+                        <p class="card-text">
+                            Comprehensive patient profiles, medical history tracking, and intelligent search capabilities 
+                            with advanced Trie data structure implementation.
+                        </p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-4">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-body text-center p-4">
+                        <div class="feature-icon text-success mb-3">
+                            <i class="fas fa-calendar-alt fa-3x"></i>
+                        </div>
+                        <h5 class="card-title">Smart Scheduling</h5>
+                        <p class="card-text">
+                            Priority-based appointment scheduling using Min/Max heaps for optimal queue management 
+                            and emergency case prioritization.
+                        </p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-4">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-body text-center p-4">
+                        <div class="feature-icon text-info mb-3">
+                            <i class="fas fa-user-md fa-3x"></i>
+                        </div>
+                        <h5 class="card-title">Doctor Network</h5>
+                        <p class="card-text">
+                            Graph-based doctor referral system for optimal specialist recommendations 
+                            and seamless healthcare provider collaboration.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-body text-center p-4">
+                        <div class="feature-icon text-warning mb-3">
+                            <i class="fas fa-file-medical-alt fa-3x"></i>
+                        </div>
+                        <h5 class="card-title">Medical Records</h5>
+                        <p class="card-text">
+                            Secure digital storage and retrieval of patient medical information 
+                            with comprehensive search and analytics capabilities.
+                        </p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-4">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-body text-center p-4">
+                        <div class="feature-icon text-danger mb-3">
+                            <i class="fas fa-chart-line fa-3x"></i>
+                        </div>
+                        <h5 class="card-title">Analytics Dashboard</h5>
+                        <p class="card-text">
+                            Real-time performance metrics using Segment Tree for efficient range queries 
+                            and comprehensive healthcare analytics.
+                        </p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-4">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-body text-center p-4">
+                        <div class="feature-icon text-secondary mb-3">
+                            <i class="fas fa-shield-alt fa-3x"></i>
+                        </div>
+                        <h5 class="card-title">Secure Access</h5>
+                        <p class="card-text">
+                            Multi-role authentication system with role-based access control 
+                            ensuring data security and privacy compliance.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Technology Stack -->
+        <div class="row">
+            <div class="col-12">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-header bg-light">
+                        <h4 class="mb-0">
+                            <i class="fas fa-cogs me-2"></i>Advanced Technology Stack
+                        </h4>
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-4">
+                            <div class="col-md-6">
+                                <h6 class="fw-bold text-primary">Data Structures & Algorithms</h6>
+                                <ul class="list-unstyled">
+                                    <li><i class="fas fa-check-circle text-success me-2"></i>Trie for intelligent search</li>
+                                    <li><i class="fas fa-check-circle text-success me-2"></i>Min/Max Heaps for priority queues</li>
+                                    <li><i class="fas fa-check-circle text-success me-2"></i>Graph algorithms for referrals</li>
+                                    <li><i class="fas fa-check-circle text-success me-2"></i>Segment Tree for analytics</li>
+                                </ul>
+                            </div>
+                            <div class="col-md-6">
+                                <h6 class="fw-bold text-primary">Platform Features</h6>
+                                <ul class="list-unstyled">
+                                    <li><i class="fas fa-check-circle text-success me-2"></i>Flask & PostgreSQL backend</li>
+                                    <li><i class="fas fa-check-circle text-success me-2"></i>Bootstrap 5 responsive design</li>
+                                    <li><i class="fas fa-check-circle text-success me-2"></i>Real-time data visualization</li>
+                                    <li><i class="fas fa-check-circle text-success me-2"></i>ACID compliant database</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Test Credentials -->
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="alert alert-info">
+                    <h6 class="alert-heading">
+                        <i class="fas fa-info-circle me-2"></i>Test Login Credentials
+                    </h6>
+                    <div class="row">
+                        <div class="col-md-4">
+                            <strong>Patient:</strong><br>
+                            Email: patient@hdims.com<br>
+                            Password: patient123
+                        </div>
+                        <div class="col-md-4">
+                            <strong>Doctor:</strong><br>
+                            Email: doctor@hdims.com<br>
+                            Password: doctor123
+                        </div>
+                        <div class="col-md-4">
+                            <strong>Admin:</strong><br>
+                            Email: admin@hdims.com<br>
+                            Password: admin123
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

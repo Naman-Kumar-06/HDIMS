@@ -1,0 +1,240 @@
+{% extends "base.html" %}
+
+{% block title %}Patient Dashboard - HDIMS{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2 class="text-primary">
+                <i class="fas fa-tachometer-alt me-2"></i>Patient Dashboard
+            </h2>
+            <div class="text-muted">
+                Welcome back, {{ current_user.full_name }}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Stats -->
+<div class="row g-4 mb-4">
+    <div class="col-md-3">
+        <div class="card bg-primary text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h4 class="mb-0">{{ upcoming_appointments|length }}</h4>
+                        <p class="mb-0">Upcoming</p>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-calendar-check fa-2x opacity-75"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card bg-success text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h4 class="mb-0">{{ recent_appointments|length }}</h4>
+                        <p class="mb-0">Total Visits</p>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-user-check fa-2x opacity-75"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card bg-info text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h4 class="mb-0">{{ recent_records|length }}</h4>
+                        <p class="mb-0">Medical Records</p>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-file-medical fa-2x opacity-75"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card bg-warning text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h4 class="mb-0">{{ patient.patient_id }}</h4>
+                        <p class="mb-0">Patient ID</p>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-id-card fa-2x opacity-75"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Upcoming Appointments -->
+    <div class="col-lg-6">
+        <div class="card h-100">
+            <div class="card-header bg-light">
+                <h5 class="mb-0">
+                    <i class="fas fa-calendar-alt me-2"></i>Upcoming Appointments
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if upcoming_appointments %}
+                    {% for appointment in upcoming_appointments %}
+                        <div class="d-flex justify-content-between align-items-center p-3 mb-2 bg-light rounded">
+                            <div>
+                                <h6 class="mb-1">Dr. {{ appointment.doctor.user.full_name }}</h6>
+                                <small class="text-muted">{{ appointment.doctor.specialization }}</small>
+                                <div class="mt-1">
+                                    <span class="badge bg-primary">{{ appointment.appointment_date.strftime('%B %d, %Y') }}</span>
+                                    <span class="badge bg-secondary">{{ appointment.appointment_time.strftime('%I:%M %p') }}</span>
+                                </div>
+                            </div>
+                            <div class="text-end">
+                                <span class="badge bg-success">{{ appointment.status.title() }}</span>
+                            </div>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="text-center py-4">
+                        <i class="fas fa-calendar-times fa-3x text-muted mb-3"></i>
+                        <p class="text-muted">No upcoming appointments</p>
+                        <a href="{{ url_for('book_appointment') }}" class="btn btn-primary">
+                            <i class="fas fa-plus me-2"></i>Book Appointment
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Recent Medical Records -->
+    <div class="col-lg-6">
+        <div class="card h-100">
+            <div class="card-header bg-light">
+                <h5 class="mb-0">
+                    <i class="fas fa-file-medical-alt me-2"></i>Recent Medical Records
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if recent_records %}
+                    {% for record in recent_records %}
+                        <div class="d-flex justify-content-between align-items-center p-3 mb-2 bg-light rounded">
+                            <div>
+                                <h6 class="mb-1">{{ record.diagnosis or 'General Consultation' }}</h6>
+                                <small class="text-muted">Dr. {{ record.doctor.user.full_name }}</small>
+                                <div class="mt-1">
+                                    <span class="badge bg-info">{{ record.record_date.strftime('%B %d, %Y') }}</span>
+                                </div>
+                            </div>
+                            <div>
+                                {% if record.follow_up_required %}
+                                    <span class="badge bg-warning">Follow-up Required</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="text-center py-4">
+                        <i class="fas fa-file-medical fa-3x text-muted mb-3"></i>
+                        <p class="text-muted">No medical records yet</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Patient Information -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header bg-light">
+                <h5 class="mb-0">
+                    <i class="fas fa-user me-2"></i>Patient Information
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <strong>Blood Type:</strong>
+                        <span class="ms-2">{{ patient.blood_type or 'Not specified' }}</span>
+                    </div>
+                    <div class="col-md-6">
+                        <strong>Allergies:</strong>
+                        <span class="ms-2">{{ patient.allergies or 'None known' }}</span>
+                    </div>
+                    <div class="col-md-6">
+                        <strong>Emergency Contact:</strong>
+                        <span class="ms-2">{{ patient.emergency_contact_name or 'Not specified' }}</span>
+                    </div>
+                    <div class="col-md-6">
+                        <strong>Insurance:</strong>
+                        <span class="ms-2">{{ patient.insurance_provider or 'Not specified' }}</span>
+                    </div>
+                </div>
+                <div class="mt-3">
+                    <a href="{{ url_for('patient_profile') }}" class="btn btn-outline-primary">
+                        <i class="fas fa-edit me-2"></i>Update Profile
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Actions -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header bg-light">
+                <h5 class="mb-0">
+                    <i class="fas fa-bolt me-2"></i>Quick Actions
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-3">
+                        <a href="{{ url_for('book_appointment') }}" class="btn btn-primary btn-lg w-100">
+                            <i class="fas fa-calendar-plus mb-2 d-block"></i>
+                            Book Appointment
+                        </a>
+                    </div>
+                    <div class="col-md-3">
+                        <a href="{{ url_for('patient_appointments') }}" class="btn btn-success btn-lg w-100">
+                            <i class="fas fa-calendar-check mb-2 d-block"></i>
+                            My Appointments
+                        </a>
+                    </div>
+                    <div class="col-md-3">
+                        <a href="{{ url_for('patient_medical_records') }}" class="btn btn-info btn-lg w-100">
+                            <i class="fas fa-file-medical mb-2 d-block"></i>
+                            Medical Records
+                        </a>
+                    </div>
+                    <div class="col-md-3">
+                        <a href="{{ url_for('patient_profile') }}" class="btn btn-warning btn-lg w-100">
+                            <i class="fas fa-user-edit mb-2 d-block"></i>
+                            Update Profile
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

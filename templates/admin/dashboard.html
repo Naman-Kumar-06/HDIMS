@@ -1,0 +1,628 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Dashboard - HDIMS{% endblock %}
+
+{% block extra_head %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2 class="text-primary">
+                <i class="fas fa-tachometer-alt me-2"></i>Admin Dashboard
+            </h2>
+            <div class="text-muted">
+                System Overview & Analytics
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- System Statistics -->
+<div class="row g-4 mb-4">
+    <div class="col-md-3">
+        <div class="card bg-primary text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h3 class="mb-0">{{ total_patients }}</h3>
+                        <p class="mb-0">Total Patients</p>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-users fa-2x opacity-75"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="card-footer bg-primary bg-opacity-75">
+                <a href="{{ url_for('admin_users') }}?role=patient" class="text-white text-decoration-none">
+                    <small>View all patients <i class="fas fa-arrow-right"></i></small>
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card bg-success text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h3 class="mb-0">{{ total_doctors }}</h3>
+                        <p class="mb-0">Total Doctors</p>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-user-md fa-2x opacity-75"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="card-footer bg-success bg-opacity-75">
+                <a href="{{ url_for('admin_users') }}?role=doctor" class="text-white text-decoration-none">
+                    <small>View all doctors <i class="fas fa-arrow-right"></i></small>
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card bg-info text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h3 class="mb-0">{{ total_appointments }}</h3>
+                        <p class="mb-0">Total Appointments</p>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-calendar-check fa-2x opacity-75"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="card-footer bg-info bg-opacity-75">
+                <a href="{{ url_for('admin_analytics') }}" class="text-white text-decoration-none">
+                    <small>View analytics <i class="fas fa-arrow-right"></i></small>
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card bg-warning text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h3 class="mb-0">{{ total_users }}</h3>
+                        <p class="mb-0">Total Users</p>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-user-friends fa-2x opacity-75"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="card-footer bg-warning bg-opacity-75">
+                <a href="{{ url_for('admin_users') }}" class="text-white text-decoration-none">
+                    <small>Manage users <i class="fas fa-arrow-right"></i></small>
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Monthly Appointments Chart -->
+    <div class="col-lg-8">
+        <div class="card h-100">
+            <div class="card-header bg-light">
+                <h5 class="mb-0">
+                    <i class="fas fa-chart-line me-2"></i>Monthly Appointment Trends
+                </h5>
+            </div>
+            <div class="card-body" style="height: 300px; position: relative;">
+                <canvas id="appointmentsChart"></canvas>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Quick Actions -->
+    <div class="col-lg-4">
+        <div class="card h-100">
+            <div class="card-header bg-light">
+                <h5 class="mb-0">
+                    <i class="fas fa-bolt me-2"></i>Quick Actions
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-3">
+                    <a href="{{ url_for('admin_users') }}" class="btn btn-primary">
+                        <i class="fas fa-users me-2"></i>Manage Users
+                    </a>
+                    <a href="{{ url_for('admin_analytics') }}" class="btn btn-success">
+                        <i class="fas fa-chart-bar me-2"></i>View Analytics
+                    </a>
+                    <button class="btn btn-info" data-bs-toggle="modal" data-bs-target="#systemInfoModal">
+                        <i class="fas fa-info-circle me-2"></i>System Information
+                    </button>
+                    <button class="btn btn-warning" onclick="generateSystemReport()">
+                        <i class="fas fa-file-export me-2"></i>Generate Report
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Analytics Charts Row -->
+<div class="row g-4 mt-4">
+    <!-- Appointment Status Distribution -->
+    <div class="col-lg-6">
+        <div class="card h-100">
+            <div class="card-header bg-light">
+                <h5 class="mb-0">
+                    <i class="fas fa-chart-pie me-2"></i>Appointment Status Distribution
+                </h5>
+            </div>
+            <div class="card-body" style="height: 250px; position: relative;">
+                <canvas id="statusChart"></canvas>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Doctor Specialization Distribution -->
+    <div class="col-lg-6">
+        <div class="card h-100">
+            <div class="card-header bg-light">
+                <h5 class="mb-0">
+                    <i class="fas fa-user-md me-2"></i>Doctor Specializations
+                </h5>
+            </div>
+            <div class="card-body" style="height: 250px; position: relative;">
+                <canvas id="specializationChart"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Appointments -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header bg-light">
+                <h5 class="mb-0">
+                    <i class="fas fa-clock me-2"></i>Recent Appointments
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if recent_appointments %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Appointment ID</th>
+                                    <th>Patient</th>
+                                    <th>Doctor</th>
+                                    <th>Date</th>
+                                    <th>Time</th>
+                                    <th>Status</th>
+                                    <th>Type</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for appointment in recent_appointments %}
+                                    <tr>
+                                        <td>
+                                            <span class="font-monospace">{{ appointment.appointment_id }}</span>
+                                        </td>
+                                        <td>
+                                            <div>
+                                                <strong>{{ appointment.patient.user.full_name }}</strong>
+                                                <br><small class="text-muted">{{ appointment.patient.patient_id }}</small>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div>
+                                                <strong>Dr. {{ appointment.doctor.user.full_name }}</strong>
+                                                <br><small class="text-muted">{{ appointment.doctor.specialization }}</small>
+                                            </div>
+                                        </td>
+                                        <td>{{ appointment.appointment_date.strftime('%m/%d/%Y') }}</td>
+                                        <td>{{ appointment.appointment_time.strftime('%I:%M %p') }}</td>
+                                        <td>
+                                            {% if appointment.status == 'scheduled' %}
+                                                <span class="badge bg-primary">Scheduled</span>
+                                            {% elif appointment.status == 'completed' %}
+                                                <span class="badge bg-success">Completed</span>
+                                            {% elif appointment.status == 'cancelled' %}
+                                                <span class="badge bg-danger">Cancelled</span>
+                                            {% else %}
+                                                <span class="badge bg-secondary">{{ appointment.status.title() }}</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-info">{{ appointment.appointment_type.title() }}</span>
+                                            {% if appointment.priority_score > 30 %}
+                                                <br><span class="badge bg-danger mt-1">High Priority</span>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="text-center py-4">
+                        <i class="fas fa-calendar fa-3x text-muted mb-3"></i>
+                        <p class="text-muted">No recent appointments to display</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- System Information Modal -->
+<div class="modal fade" id="systemInfoModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-server me-2"></i>System Information
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row g-4">
+                    <div class="col-md-6">
+                        <h6 class="text-primary">System Statistics</h6>
+                        <ul class="list-unstyled">
+                            <li><strong>Total Users:</strong> {{ total_users }}</li>
+                            <li><strong>Active Patients:</strong> {{ total_patients }}</li>
+                            <li><strong>Registered Doctors:</strong> {{ total_doctors }}</li>
+                            <li><strong>Total Appointments:</strong> {{ total_appointments }}</li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <h6 class="text-primary">Advanced Features</h6>
+                        <ul class="list-unstyled">
+                            <li><i class="fas fa-check text-success me-2"></i>Trie-based Search System</li>
+                            <li><i class="fas fa-check text-success me-2"></i>Priority Queue Management</li>
+                            <li><i class="fas fa-check text-success me-2"></i>Graph-based Referral System</li>
+                            <li><i class="fas fa-check text-success me-2"></i>Segment Tree Analytics</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="alert alert-info mt-3">
+                    <h6 class="alert-heading">
+                        <i class="fas fa-info-circle me-2"></i>HDIMS Technology Stack
+                    </h6>
+                    <p class="mb-0">
+                        This system utilizes advanced data structures and algorithms including Trie for efficient search,
+                        Min/Max heaps for appointment prioritization, graph algorithms for doctor referrals, and segment trees
+                        for performance analytics.
+                    </p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.chart-container {
+    position: relative;
+    height: 300px;
+    width: 100%;
+    overflow: hidden;
+}
+
+.chart-container canvas {
+    position: absolute;
+    left: 0;
+    top: 0;
+    pointer-events: auto;
+}
+
+.status-chart-container {
+    position: relative;
+    height: 250px;
+    width: 100%;
+    overflow: hidden;
+}
+
+.specialization-chart-container {
+    position: relative;
+    height: 250px;
+    width: 100%;
+    overflow: hidden;
+}
+
+.card-body canvas {
+    max-width: 100% !important;
+    max-height: 100% !important;
+}
+
+/* Fix for chart responsiveness */
+.chart-responsive {
+    position: relative;
+    overflow: hidden;
+}
+
+.chart-responsive canvas {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100% !important;
+    height: 100% !important;
+}
+</style>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Check if Chart.js is loaded
+    if (typeof Chart === 'undefined') {
+        console.error('Chart.js is not loaded');
+        return;
+    }
+    
+    // Monthly Appointments Chart
+    const ctx = document.getElementById('appointmentsChart');
+    if (!ctx) {
+        console.error('Chart canvas not found');
+        return;
+    }
+    
+    const monthlyData = {{ monthly_data|tojson|safe }};
+    console.log('Monthly data:', monthlyData);
+    
+    let labels = [];
+    let data = [];
+    
+    if (monthlyData && monthlyData.length > 0) {
+        labels = monthlyData.map(item => {
+            if (item.month) {
+                const date = new Date(item.month + '-01');
+                return date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+            }
+            return 'Unknown';
+        });
+        data = monthlyData.map(item => item.count || 0);
+    } else {
+        labels = ['No Data'];
+        data = [0];
+    }
+    
+    try {
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Appointments',
+                    data: data,
+                    borderColor: '#2563EB',
+                    backgroundColor: 'rgba(37, 99, 235, 0.1)',
+                    borderWidth: 3,
+                    fill: true,
+                    tension: 0.4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: {
+                    intersect: false
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            stepSize: 1
+                        }
+                    },
+                    x: {
+                        ticks: {
+                            maxRotation: 0,
+                            minRotation: 0
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                elements: {
+                    point: {
+                        radius: 4,
+                        hoverRadius: 6
+                    }
+                }
+            }
+        });
+    } catch (error) {
+        console.error('Error creating appointments chart:', error);
+    }
+
+    // Status Distribution Chart
+    const statusCtx = document.getElementById('statusChart');
+    if (statusCtx) {
+        const statusData = {{ status_distribution|tojson|safe }};
+        console.log('Status data:', statusData);
+        
+        let statusLabels = [];
+        let statusCounts = [];
+        
+        if (statusData && statusData.length > 0) {
+            statusLabels = statusData.map(item => item.status ? item.status.charAt(0).toUpperCase() + item.status.slice(1) : 'Unknown');
+            statusCounts = statusData.map(item => item.count || 0);
+        } else {
+            statusLabels = ['No Data'];
+            statusCounts = [1];
+        }
+        
+        try {
+            new Chart(statusCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: statusLabels,
+                    datasets: [{
+                        data: statusCounts,
+                        backgroundColor: [
+                            '#10B981', // scheduled - green
+                            '#3B82F6', // completed - blue
+                            '#EF4444', // cancelled - red
+                            '#F59E0B'  // rescheduled - yellow
+                        ],
+                        borderWidth: 2,
+                        borderColor: '#fff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                padding: 15,
+                                usePointStyle: true,
+                                font: {
+                                    size: 12
+                                }
+                            }
+                        }
+                    },
+                    cutout: '50%'
+                }
+            });
+        } catch (error) {
+            console.error('Error creating status chart:', error);
+        }
+    }
+
+    // Specialization Distribution Chart
+    const specCtx = document.getElementById('specializationChart');
+    if (specCtx) {
+        const specData = {{ specialization_distribution|tojson|safe }};
+        console.log('Specialization data:', specData);
+        
+        let specLabels = [];
+        let specCounts = [];
+        
+        if (specData && specData.length > 0) {
+            specLabels = specData.map(item => item.specialization || 'Unknown');
+            specCounts = specData.map(item => item.count || 0);
+        } else {
+            specLabels = ['No Data'];
+            specCounts = [1];
+        }
+        
+        try {
+            new Chart(specCtx, {
+                type: 'bar',
+                data: {
+                    labels: specLabels,
+                    datasets: [{
+                        label: 'Doctors',
+                        data: specCounts,
+                        backgroundColor: 'rgba(59, 130, 246, 0.8)',
+                        borderColor: '#3B82F6',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    layout: {
+                        padding: {
+                            top: 10,
+                            bottom: 10
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                stepSize: 1,
+                                font: {
+                                    size: 11
+                                }
+                            },
+                            grid: {
+                                display: true,
+                                color: '#f0f0f0'
+                            }
+                        },
+                        x: {
+                            ticks: {
+                                maxRotation: 45,
+                                minRotation: 0,
+                                font: {
+                                    size: 10
+                                }
+                            },
+                            grid: {
+                                display: false
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(0,0,0,0.8)',
+                            titleColor: 'white',
+                            bodyColor: 'white'
+                        }
+                    },
+                    elements: {
+                        bar: {
+                            borderRadius: 4
+                        }
+                    }
+                }
+            });
+        } catch (error) {
+            console.error('Error creating specialization chart:', error);
+        }
+    }
+});
+
+function generateSystemReport() {
+    // Simulate report generation
+    const button = event.target;
+    const originalText = button.innerHTML;
+    
+    button.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Generating...';
+    button.disabled = true;
+    
+    setTimeout(() => {
+        button.innerHTML = originalText;
+        button.disabled = false;
+        
+        // Show success message
+        const alert = document.createElement('div');
+        alert.className = 'alert alert-success alert-dismissible fade show mt-3';
+        alert.innerHTML = `
+            <i class="fas fa-check-circle me-2"></i>System report generated successfully!
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        `;
+        
+        document.querySelector('.container').insertBefore(alert, document.querySelector('.container').firstChild);
+        
+        // Auto-dismiss after 5 seconds
+        setTimeout(() => {
+            if (alert.parentNode) {
+                alert.remove();
+            }
+        }, 5000);
+    }, 2000);
+}
+</script>
+{% endblock %}

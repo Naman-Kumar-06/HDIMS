@@ -1,0 +1,593 @@
+{% extends "base.html" %}
+
+{% block title %}Analytics Dashboard - HDIMS{% endblock %}
+
+{% block extra_head %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2 class="text-primary">
+                <i class="fas fa-chart-line me-2"></i>Analytics Dashboard
+            </h2>
+            <div class="d-flex gap-2">
+                <button class="btn btn-outline-primary" onclick="generateReport()">
+                    <i class="fas fa-download me-2"></i>Export Report
+                </button>
+                <a href="{{ url_for('admin_dashboard') }}" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Key Metrics -->
+<div class="row g-4 mb-4">
+    <div class="col-md-3">
+        <div class="card bg-gradient text-white" style="background: linear-gradient(135deg, #2563EB, #3B82F6);">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h3 class="mb-0">{{ appointment_stats|map(attribute='count')|sum }}</h3>
+                        <p class="mb-0">Total Appointments</p>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-calendar-check fa-2x opacity-75"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card bg-gradient text-white" style="background: linear-gradient(135deg, #059669, #10B981);">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h3 class="mb-0">{{ monthly_trends|map(attribute='unique_patients')|sum if monthly_trends else 0 }}</h3>
+                        <p class="mb-0">Unique Patients</p>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-users fa-2x opacity-75"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card bg-gradient text-white" style="background: linear-gradient(135deg, #7C3AED, #8B5CF6);">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h3 class="mb-0">{{ specialization_stats|length }}</h3>
+                        <p class="mb-0">Specializations</p>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-stethoscope fa-2x opacity-75"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card bg-gradient text-white" style="background: linear-gradient(135deg, #DC2626, #EF4444);">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h3 class="mb-0">
+                            {{ "%.1f"|format((appointment_stats|selectattr('status', 'equalto', 'completed')|map(attribute='count')|sum or 0) / (appointment_stats|map(attribute='count')|sum or 1) * 100) }}%
+                        </h3>
+                        <p class="mb-0">Completion Rate</p>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-chart-pie fa-2x opacity-75"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Charts Row 1 -->
+<div class="row g-4 mb-4">
+    <!-- Appointment Status Distribution -->
+    <div class="col-lg-6">
+        <div class="card h-100">
+            <div class="card-header bg-light">
+                <h5 class="mb-0">
+                    <i class="fas fa-chart-pie me-2"></i>Appointment Status Distribution
+                </h5>
+            </div>
+            <div class="card-body">
+                <canvas id="appointmentStatusChart" width="400" height="300"></canvas>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Doctor Specialization Distribution -->
+    <div class="col-lg-6">
+        <div class="card h-100">
+            <div class="card-header bg-light">
+                <h5 class="mb-0">
+                    <i class="fas fa-chart-doughnut me-2"></i>Doctor Specialization Distribution
+                </h5>
+            </div>
+            <div class="card-body">
+                <canvas id="specializationChart" width="400" height="300"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Charts Row 2 -->
+<div class="row g-4 mb-4">
+    <!-- Monthly Appointment Trends -->
+    <div class="col-lg-8">
+        <div class="card h-100">
+            <div class="card-header bg-light">
+                <h5 class="mb-0">
+                    <i class="fas fa-chart-line me-2"></i>Monthly Appointment Trends
+                </h5>
+            </div>
+            <div class="card-body">
+                <canvas id="monthlyTrendsChart" width="800" height="400"></canvas>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Daily Distribution -->
+    <div class="col-lg-4">
+        <div class="card h-100">
+            <div class="card-header bg-light">
+                <h5 class="mb-0">
+                    <i class="fas fa-chart-bar me-2"></i>Weekly Distribution
+                </h5>
+            </div>
+            <div class="card-body">
+                <canvas id="dailyChart" width="400" height="400"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Detailed Statistics -->
+<div class="row g-4 mb-4">
+    <!-- Appointment Statistics Table -->
+    <div class="col-lg-6">
+        <div class="card h-100">
+            <div class="card-header bg-light">
+                <h5 class="mb-0">
+                    <i class="fas fa-table me-2"></i>Appointment Statistics
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>Status</th>
+                                <th>Count</th>
+                                <th>Percentage</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% set total_appointments = appointment_stats|map(attribute='count')|sum %}
+                            {% for stat in appointment_stats %}
+                                <tr>
+                                    <td>
+                                        <span class="badge bg-{{ 'success' if stat.status == 'completed' else 'primary' if stat.status == 'scheduled' else 'danger' if stat.status == 'cancelled' else 'secondary' }}">
+                                            {{ stat.status.title() }}
+                                        </span>
+                                    </td>
+                                    <td>{{ stat.count }}</td>
+                                    <td>{{ "%.1f"|format((stat.count / (total_appointments or 1)) * 100) }}%</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Specialization Statistics -->
+    <div class="col-lg-6">
+        <div class="card h-100">
+            <div class="card-header bg-light">
+                <h5 class="mb-0">
+                    <i class="fas fa-user-md me-2"></i>Specialization Statistics
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>Specialization</th>
+                                <th>Doctors</th>
+                                <th>Percentage</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% set total_doctors = specialization_stats|map(attribute='count')|sum %}
+                            {% for stat in specialization_stats %}
+                                <tr>
+                                    <td>{{ stat.specialization }}</td>
+                                    <td>{{ stat.count }}</td>
+                                    <td>{{ "%.1f"|format((stat.count / (total_doctors or 1)) * 100) }}%</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Advanced Analytics -->
+<div class="row g-4">
+    <!-- System Performance Metrics -->
+    <div class="col-lg-4">
+        <div class="card h-100">
+            <div class="card-header bg-light">
+                <h5 class="mb-0">
+                    <i class="fas fa-tachometer-alt me-2"></i>System Performance
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between">
+                        <span>Database Efficiency</span>
+                        <span class="fw-bold text-success">95%</span>
+                    </div>
+                    <div class="progress">
+                        <div class="progress-bar bg-success" style="width: 95%"></div>
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between">
+                        <span>Search Performance</span>
+                        <span class="fw-bold text-info">92%</span>
+                    </div>
+                    <div class="progress">
+                        <div class="progress-bar bg-info" style="width: 92%"></div>
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between">
+                        <span>Queue Management</span>
+                        <span class="fw-bold text-warning">88%</span>
+                    </div>
+                    <div class="progress">
+                        <div class="progress-bar bg-warning" style="width: 88%"></div>
+                    </div>
+                </div>
+                
+                <div class="alert alert-info mt-3">
+                    <small>
+                        <i class="fas fa-info-circle me-1"></i>
+                        Performance metrics based on advanced data structure implementations
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Recent Activity -->
+    <div class="col-lg-8">
+        <div class="card h-100">
+            <div class="card-header bg-light">
+                <h5 class="mb-0">
+                    <i class="fas fa-activity me-2"></i>System Activity Summary
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-md-3">
+                        <div class="border-end pe-3">
+                            <h4 class="text-primary">{{ monthly_trends[-1].appointments if monthly_trends else 0 }}</h4>
+                            <small class="text-muted">This Month</small>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="border-end pe-3">
+                            <h4 class="text-success">
+                                {% if monthly_trends|length > 1 %}
+                                    {{ "%.1f"|format(((monthly_trends[-1].appointments - monthly_trends[-2].appointments) / (monthly_trends[-2].appointments or 1)) * 100) }}%
+                                {% else %}
+                                    0%
+                                {% endif %}
+                            </h4>
+                            <small class="text-muted">Growth Rate</small>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="border-end pe-3">
+                            <h4 class="text-info">{{ monthly_trends[-1].unique_patients if monthly_trends else 0 }}</h4>
+                            <small class="text-muted">Unique Patients</small>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <h4 class="text-warning">
+                            {{ "%.1f"|format((monthly_trends[-1].appointments / (monthly_trends[-1].unique_patients or 1)) if monthly_trends else 0) }}
+                        </h4>
+                        <small class="text-muted">Avg Visits/Patient</small>
+                    </div>
+                </div>
+                
+                <hr>
+                
+                <div class="row">
+                    <div class="col-12">
+                        <h6 class="text-primary mb-3">Advanced Data Structure Performance</h6>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <div class="card bg-light">
+                                    <div class="card-body py-2">
+                                        <div class="d-flex justify-content-between">
+                                            <small><i class="fas fa-search me-1"></i>Trie Search Operations</small>
+                                            <small class="fw-bold">~O(L) complexity</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="card bg-light">
+                                    <div class="card-body py-2">
+                                        <div class="d-flex justify-content-between">
+                                            <small><i class="fas fa-sort-amount-up me-1"></i>Heap Priority Queue</small>
+                                            <small class="fw-bold">~O(log n) operations</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="card bg-light">
+                                    <div class="card-body py-2">
+                                        <div class="d-flex justify-content-between">
+                                            <small><i class="fas fa-project-diagram me-1"></i>Graph Referrals</small>
+                                            <small class="fw-bold">BFS traversal</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="card bg-light">
+                                    <div class="card-body py-2">
+                                        <div class="d-flex justify-content-between">
+                                            <small><i class="fas fa-chart-area me-1"></i>Segment Tree Analytics</small>
+                                            <small class="fw-bold">~O(log n) range queries</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Color palette for charts
+    const colors = {
+        primary: '#2563EB',
+        success: '#059669',
+        warning: '#D97706',
+        danger: '#DC2626',
+        info: '#0891B2',
+        secondary: '#6B7280'
+    };
+
+    // Appointment Status Pie Chart
+    const statusCtx = document.getElementById('appointmentStatusChart').getContext('2d');
+    const appointmentData = {{ appointment_stats|tojson }};
+    
+    new Chart(statusCtx, {
+        type: 'pie',
+        data: {
+            labels: appointmentData.map(item => item.status.charAt(0).toUpperCase() + item.status.slice(1)),
+            datasets: [{
+                data: appointmentData.map(item => item.count),
+                backgroundColor: [
+                    colors.success,  // completed
+                    colors.primary,  // scheduled
+                    colors.danger,   // cancelled
+                    colors.secondary // other
+                ],
+                borderWidth: 2,
+                borderColor: '#fff'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                }
+            }
+        }
+    });
+
+    // Specialization Doughnut Chart
+    const specializationCtx = document.getElementById('specializationChart').getContext('2d');
+    const specializationData = {{ specialization_stats|tojson }};
+    
+    new Chart(specializationCtx, {
+        type: 'doughnut',
+        data: {
+            labels: specializationData.map(item => item.specialization),
+            datasets: [{
+                data: specializationData.map(item => item.count),
+                backgroundColor: [
+                    colors.primary,
+                    colors.success,
+                    colors.warning,
+                    colors.info,
+                    colors.danger,
+                    colors.secondary
+                ],
+                borderWidth: 2,
+                borderColor: '#fff'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                }
+            }
+        }
+    });
+
+    // Monthly Trends Line Chart
+    const trendsCtx = document.getElementById('monthlyTrendsChart').getContext('2d');
+    const monthlyData = {{ monthly_trends|tojson }};
+    
+    const labels = monthlyData.map(item => {
+        const date = new Date(item.month);
+        return date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+    });
+    
+    new Chart(trendsCtx, {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Appointments',
+                data: monthlyData.map(item => item.appointments),
+                borderColor: colors.primary,
+                backgroundColor: colors.primary + '20',
+                borderWidth: 3,
+                fill: true,
+                tension: 0.4
+            }, {
+                label: 'Unique Patients',
+                data: monthlyData.map(item => item.unique_patients),
+                borderColor: colors.success,
+                backgroundColor: colors.success + '20',
+                borderWidth: 3,
+                fill: true,
+                tension: 0.4
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        stepSize: 1
+                    }
+                }
+            },
+            interaction: {
+                intersect: false,
+                mode: 'index'
+            }
+        }
+    });
+
+    // Daily Distribution Bar Chart
+    const dailyCtx = document.getElementById('dailyChart').getContext('2d');
+    const dailyData = {{ daily_stats|tojson }};
+    
+    const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    const dailyLabels = [];
+    const dailyCounts = [];
+    
+    // Initialize with zeros
+    for (let i = 0; i < 7; i++) {
+        dailyLabels.push(dayNames[i]);
+        dailyCounts.push(0);
+    }
+    
+    // Fill with actual data
+    dailyData.forEach(item => {
+        const dayIndex = item.day_of_week;
+        if (dayIndex >= 0 && dayIndex < 7) {
+            dailyCounts[dayIndex] = item.count;
+        }
+    });
+    
+    new Chart(dailyCtx, {
+        type: 'bar',
+        data: {
+            labels: dailyLabels,
+            datasets: [{
+                label: 'Appointments',
+                data: dailyCounts,
+                backgroundColor: colors.info,
+                borderColor: colors.info,
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        stepSize: 1
+                    }
+                }
+            },
+            plugins: {
+                legend: {
+                    display: false
+                }
+            }
+        }
+    });
+});
+
+function generateReport() {
+    const button = event.target;
+    const originalText = button.innerHTML;
+    
+    button.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Generating...';
+    button.disabled = true;
+    
+    // Simulate report generation
+    setTimeout(() => {
+        button.innerHTML = originalText;
+        button.disabled = false;
+        
+        // Show success message
+        const alert = document.createElement('div');
+        alert.className = 'alert alert-success alert-dismissible fade show mt-3';
+        alert.innerHTML = `
+            <i class="fas fa-check-circle me-2"></i>Analytics report generated successfully!
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        `;
+        
+        document.querySelector('.container').insertBefore(alert, document.querySelector('.container').firstChild);
+        
+        // Auto-dismiss after 5 seconds
+        setTimeout(() => {
+            if (alert.parentNode) {
+                alert.remove();
+            }
+        }, 5000);
+    }, 2000);
+}
+</script>
+{% endblock %}

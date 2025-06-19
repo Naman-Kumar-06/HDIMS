@@ -1,0 +1,338 @@
+{% extends "base.html" %}
+
+{% block title %}My Schedule - HDIMS{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2 class="text-primary">
+                <i class="fas fa-calendar-week me-2"></i>My Schedule
+            </h2>
+            <a href="{{ url_for('doctor_dashboard') }}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Week Navigation -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h5 class="mb-0">
+                            Week of {{ start_of_week.strftime('%B %d') }} - {{ end_of_week.strftime('%B %d, %Y') }}
+                        </h5>
+                    </div>
+                    <div class="btn-group">
+                        <a href="{{ url_for('doctor_schedule') }}?week={{ (start_of_week - timedelta(days=7)).strftime('%Y-%m-%d') }}" 
+                           class="btn btn-outline-secondary">
+                            <i class="fas fa-chevron-left"></i> Previous Week
+                        </a>
+                        <a href="{{ url_for('doctor_schedule') }}" class="btn btn-primary">
+                            <i class="fas fa-calendar-day"></i> This Week
+                        </a>
+                        <a href="{{ url_for('doctor_schedule') }}?week={{ (start_of_week + timedelta(days=7)).strftime('%Y-%m-%d') }}" 
+                           class="btn btn-outline-secondary">
+                            Next Week <i class="fas fa-chevron-right"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Working Hours Summary -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header bg-light">
+                <h6 class="mb-0">
+                    <i class="fas fa-clock me-2"></i>Working Hours
+                </h6>
+            </div>
+            <div class="card-body">
+                {% if working_days %}
+                    <div class="row">
+                        {% for day_info in working_days %}
+                            <div class="col-md-4 col-lg-3 mb-2">
+                                <div class="d-flex justify-content-between">
+                                    <strong>{{ day_info.day }}:</strong>
+                                    <span class="text-muted">{{ day_info.start_time }} - {{ day_info.end_time }}</span>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="text-center py-3">
+                        <i class="fas fa-exclamation-triangle text-warning me-2"></i>
+                        <span class="text-muted">No working hours configured. </span>
+                        <a href="{{ url_for('doctor_profile') }}" class="btn btn-sm btn-outline-primary">
+                            Update Schedule
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Weekly Calendar -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header bg-light">
+                <h5 class="mb-0">
+                    <i class="fas fa-calendar-alt me-2"></i>Weekly Calendar
+                </h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-bordered mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th style="width: 100px;">Time</th>
+                                {% for i in range(7) %}
+                                    {% set day_date = start_of_week + timedelta(days=i) %}
+                                    <th class="text-center">
+                                        <div>{{ day_date.strftime('%A') }}</div>
+                                        <small class="text-muted">{{ day_date.strftime('%m/%d') }}</small>
+                                        {% if day_date == today() %}
+                                            <div><span class="badge bg-primary">Today</span></div>
+                                        {% endif %}
+                                    </th>
+                                {% endfor %}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for hour in range(8, 18) %}
+                                <tr>
+                                    <td class="text-center fw-bold bg-light">
+                                        {{ hour }}:00
+                                    </td>
+                                    {% for i in range(7) %}
+                                        {% set day_date = start_of_week + timedelta(days=i) %}
+                                        {% set day_appointments = week_appointments|selectattr('appointment_date', 'equalto', day_date)|selectattr('appointment_time.hour', 'equalto', hour)|list %}
+                                        <td class="position-relative" style="height: 80px;">
+                                            {% for appointment in day_appointments %}
+                                                <div class="appointment-slot bg-primary text-white rounded p-1 mb-1" 
+                                                     style="font-size: 0.75rem;">
+                                                    <div class="fw-bold">{{ appointment.appointment_time.strftime('%I:%M %p') }}</div>
+                                                    <div>{{ appointment.patient.user.full_name }}</div>
+                                                    <div>
+                                                        <span class="badge bg-light text-dark">{{ appointment.appointment_type }}</span>
+                                                        {% if appointment.priority_score > 30 %}
+                                                            <span class="badge bg-warning">Priority</span>
+                                                        {% endif %}
+                                                    </div>
+                                                </div>
+                                            {% endfor %}
+                                        </td>
+                                    {% endfor %}
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Upcoming Appointments List -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header bg-light">
+                <h5 class="mb-0">
+                    <i class="fas fa-list me-2"></i>This Week's Appointments
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if week_appointments %}
+                    <div class="row g-3">
+                        {% for appointment in week_appointments %}
+                            <div class="col-12">
+                                <div class="card border-start border-primary border-3">
+                                    <div class="card-body py-3">
+                                        <div class="row align-items-center">
+                                            <div class="col-md-3">
+                                                <h6 class="mb-1">{{ appointment.patient.user.full_name }}</h6>
+                                                <small class="text-muted">ID: {{ appointment.patient.patient_id }}</small>
+                                            </div>
+                                            
+                                            <div class="col-md-3">
+                                                <div class="fw-bold">{{ appointment.appointment_date.strftime('%A, %B %d') }}</div>
+                                                <div class="text-primary">{{ appointment.appointment_time.strftime('%I:%M %p') }}</div>
+                                            </div>
+                                            
+                                            <div class="col-md-2">
+                                                <span class="badge bg-secondary">{{ appointment.appointment_type.title() }}</span>
+                                                {% if appointment.priority_score > 30 %}
+                                                    <br><span class="badge bg-danger mt-1">High Priority</span>
+                                                {% elif appointment.priority_score > 15 %}
+                                                    <br><span class="badge bg-warning mt-1">Medium Priority</span>
+                                                {% endif %}
+                                            </div>
+                                            
+                                            <div class="col-md-2">
+                                                {% if appointment.status == 'scheduled' %}
+                                                    <span class="badge bg-success">Scheduled</span>
+                                                {% elif appointment.status == 'completed' %}
+                                                    <span class="badge bg-primary">Completed</span>
+                                                {% else %}
+                                                    <span class="badge bg-secondary">{{ appointment.status.title() }}</span>
+                                                {% endif %}
+                                            </div>
+                                            
+                                            <div class="col-md-2 text-end">
+                                                {% if appointment.status == 'scheduled' and appointment.appointment_date == today() %}
+                                                    <button class="btn btn-sm btn-success" data-bs-toggle="modal" 
+                                                            data-bs-target="#completeModal{{ appointment.id }}">
+                                                        <i class="fas fa-check"></i> Complete
+                                                    </button>
+                                                {% elif appointment.status == 'scheduled' %}
+                                                    <span class="text-muted">
+                                                        <i class="fas fa-clock"></i> Scheduled
+                                                    </span>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                        
+                                        {% if appointment.symptoms %}
+                                            <div class="row mt-2">
+                                                <div class="col-12">
+                                                    <small class="text-muted">
+                                                        <strong>Symptoms:</strong> {{ appointment.symptoms }}
+                                                    </small>
+                                                </div>
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="text-center py-4">
+                        <i class="fas fa-calendar-times fa-3x text-muted mb-3"></i>
+                        <h5 class="text-muted">No Appointments This Week</h5>
+                        <p class="text-muted">You have no scheduled appointments for this week.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Stats -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card bg-light">
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-md-3">
+                        <h4 class="text-primary">{{ week_appointments|selectattr('status', 'equalto', 'scheduled')|list|length }}</h4>
+                        <small class="text-muted">Scheduled</small>
+                    </div>
+                    <div class="col-md-3">
+                        <h4 class="text-success">{{ week_appointments|selectattr('status', 'equalto', 'completed')|list|length }}</h4>
+                        <small class="text-muted">Completed</small>
+                    </div>
+                    <div class="col-md-3">
+                        <h4 class="text-warning">{{ week_appointments|selectattr('priority_score', 'gt', 30)|list|length }}</h4>
+                        <small class="text-muted">High Priority</small>
+                    </div>
+                    <div class="col-md-3">
+                        <h4 class="text-info">{{ week_appointments|length }}</h4>
+                        <small class="text-muted">Total This Week</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Complete Appointment Modals -->
+{% for appointment in week_appointments %}
+    {% if appointment.status == 'scheduled' and appointment.appointment_date == today() %}
+        <div class="modal fade" id="completeModal{{ appointment.id }}" tabindex="-1">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Complete Appointment</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <form method="POST" action="{{ url_for('complete_appointment', appointment_id=appointment.id) }}">
+                        <div class="modal-body">
+                            <div class="row g-3">
+                                <div class="col-12">
+                                    <div class="alert alert-info">
+                                        <strong>Patient:</strong> {{ appointment.patient.user.full_name }}<br>
+                                        <strong>Time:</strong> {{ appointment.appointment_time.strftime('%I:%M %p') }}<br>
+                                        <strong>Type:</strong> {{ appointment.appointment_type.title() }}
+                                    </div>
+                                </div>
+                                
+                                <div class="col-12">
+                                    <label for="diagnosis{{ appointment.id }}" class="form-label">Diagnosis *</label>
+                                    <textarea class="form-control" id="diagnosis{{ appointment.id }}" name="diagnosis" 
+                                              rows="3" required></textarea>
+                                </div>
+                                
+                                <div class="col-md-6">
+                                    <label for="treatment{{ appointment.id }}" class="form-label">Treatment</label>
+                                    <textarea class="form-control" id="treatment{{ appointment.id }}" name="treatment" 
+                                              rows="3"></textarea>
+                                </div>
+                                
+                                <div class="col-md-6">
+                                    <label for="prescription{{ appointment.id }}" class="form-label">Prescription</label>
+                                    <textarea class="form-control" id="prescription{{ appointment.id }}" name="prescription" 
+                                              rows="3"></textarea>
+                                </div>
+                                
+                                <div class="col-12">
+                                    <label for="notes{{ appointment.id }}" class="form-label">Notes</label>
+                                    <textarea class="form-control" id="notes{{ appointment.id }}" name="notes" 
+                                              rows="2"></textarea>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                            <button type="submit" class="btn btn-success">
+                                <i class="fas fa-check me-2"></i>Complete Appointment
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+{% endfor %}
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Add hover effects to appointment slots
+    const appointmentSlots = document.querySelectorAll('.appointment-slot');
+    appointmentSlots.forEach(slot => {
+        slot.addEventListener('mouseenter', function() {
+            this.style.transform = 'scale(1.05)';
+            this.style.zIndex = '10';
+        });
+        
+        slot.addEventListener('mouseleave', function() {
+            this.style.transform = 'scale(1)';
+            this.style.zIndex = '1';
+        });
+    });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,239 @@
+{% extends "base.html" %}
+
+{% block title %}My Appointments - HDIMS{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2 class="text-primary">
+                <i class="fas fa-calendar-check me-2"></i>My Appointments
+            </h2>
+            <div class="d-flex gap-2">
+                <a href="{{ url_for('book_appointment') }}" class="btn btn-primary">
+                    <i class="fas fa-plus me-2"></i>Book New Appointment
+                </a>
+                <a href="{{ url_for('patient_dashboard') }}" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left me-2"></i>Dashboard
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if appointments %}
+    <!-- Appointments List -->
+    <div class="row g-4">
+        {% for appointment in appointments %}
+            <div class="col-12">
+                <div class="card shadow-sm">
+                    <div class="card-body">
+                        <div class="row align-items-center">
+                            <div class="col-md-3">
+                                <h6 class="mb-1">Dr. {{ appointment.doctor.user.full_name }}</h6>
+                                <small class="text-muted">{{ appointment.doctor.specialization }}</small>
+                                <div class="mt-1">
+                                    <span class="badge bg-info">{{ appointment.doctor.doctor_id }}</span>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-3">
+                                <div class="d-flex flex-column">
+                                    <span class="fw-bold">
+                                        <i class="fas fa-calendar me-1"></i>
+                                        {{ appointment.appointment_date.strftime('%B %d, %Y') }}
+                                    </span>
+                                    <span class="text-muted">
+                                        <i class="fas fa-clock me-1"></i>
+                                        {{ appointment.appointment_time.strftime('%I:%M %p') }}
+                                    </span>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-2">
+                                <span class="fw-bold">Type:</span><br>
+                                <span class="badge bg-secondary">{{ appointment.appointment_type.title() }}</span>
+                            </div>
+                            
+                            <div class="col-md-2">
+                                <span class="fw-bold">Status:</span><br>
+                                {% if appointment.status == 'scheduled' %}
+                                    <span class="badge bg-success">Scheduled</span>
+                                {% elif appointment.status == 'completed' %}
+                                    <span class="badge bg-primary">Completed</span>
+                                {% elif appointment.status == 'cancelled' %}
+                                    <span class="badge bg-danger">Cancelled</span>
+                                {% elif appointment.status == 'rescheduled' %}
+                                    <span class="badge bg-warning">Rescheduled</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">{{ appointment.status.title() }}</span>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="col-md-2 text-end">
+                                {% if appointment.priority_score > 0 %}
+                                    <div class="mb-2">
+                                        <span class="badge bg-warning">
+                                            Priority: {{ appointment.priority_score }}
+                                        </span>
+                                    </div>
+                                {% endif %}
+                                
+                                {% if appointment.status == 'scheduled' and appointment.appointment_date >= today() %}
+                                    <div class="btn-group-vertical btn-group-sm">
+                                        <button class="btn btn-outline-warning btn-sm" data-bs-toggle="modal" 
+                                                data-bs-target="#rescheduleModal{{ appointment.id }}">
+                                            <i class="fas fa-edit"></i> Reschedule
+                                        </button>
+                                        <button class="btn btn-outline-danger btn-sm" data-bs-toggle="modal" 
+                                                data-bs-target="#cancelModal{{ appointment.id }}">
+                                            <i class="fas fa-times"></i> Cancel
+                                        </button>
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        {% if appointment.symptoms %}
+                            <div class="row mt-3">
+                                <div class="col-12">
+                                    <div class="bg-light p-3 rounded">
+                                        <strong>Symptoms/Reason:</strong>
+                                        <p class="mb-0 mt-1">{{ appointment.symptoms }}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endif %}
+                        
+                        {% if appointment.notes %}
+                            <div class="row mt-3">
+                                <div class="col-12">
+                                    <div class="bg-info bg-opacity-10 p-3 rounded">
+                                        <strong>Doctor's Notes:</strong>
+                                        <p class="mb-0 mt-1">{{ appointment.notes }}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endif %}
+                        
+                        <div class="row mt-3">
+                            <div class="col-12">
+                                <small class="text-muted">
+                                    <i class="fas fa-clock me-1"></i>
+                                    Appointment ID: {{ appointment.appointment_id }} | 
+                                    Booked on: {{ appointment.created_at.strftime('%B %d, %Y at %I:%M %p') }}
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+
+    <!-- Modals for Reschedule/Cancel -->
+    {% for appointment in appointments %}
+        {% if appointment.status == 'scheduled' and appointment.appointment_date >= date.today() %}
+            <!-- Reschedule Modal -->
+            <div class="modal fade" id="rescheduleModal{{ appointment.id }}" tabindex="-1">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title">Reschedule Appointment</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body">
+                            <p>To reschedule your appointment with Dr. {{ appointment.doctor.user.full_name }}, 
+                               please contact our office directly or book a new appointment and we'll cancel this one.</p>
+                            <div class="alert alert-info">
+                                <strong>Current Appointment:</strong><br>
+                                {{ appointment.appointment_date.strftime('%B %d, %Y') }} at 
+                                {{ appointment.appointment_time.strftime('%I:%M %p') }}
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                            <a href="{{ url_for('book_appointment') }}" class="btn btn-primary">Book New Appointment</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Cancel Modal -->
+            <div class="modal fade" id="cancelModal{{ appointment.id }}" tabindex="-1">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title text-danger">Cancel Appointment</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body">
+                            <p>Are you sure you want to cancel your appointment?</p>
+                            <div class="alert alert-warning">
+                                <strong>Appointment Details:</strong><br>
+                                Dr. {{ appointment.doctor.user.full_name }}<br>
+                                {{ appointment.appointment_date.strftime('%B %d, %Y') }} at 
+                                {{ appointment.appointment_time.strftime('%I:%M %p') }}
+                            </div>
+                            <p class="text-muted">
+                                <small>Please note: Cancellations should be made at least 24 hours in advance.</small>
+                            </p>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Keep Appointment</button>
+                            <form method="POST" action="{{ url_for('cancel_appointment', appointment_id=appointment.id) }}" style="display: inline;">
+                                <button type="submit" class="btn btn-danger">Cancel Appointment</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+    {% endfor %}
+
+{% else %}
+    <!-- Empty State -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card text-center py-5">
+                <div class="card-body">
+                    <i class="fas fa-calendar-times fa-4x text-muted mb-4"></i>
+                    <h4 class="text-muted">No Appointments Yet</h4>
+                    <p class="text-muted mb-4">You haven't booked any appointments yet. Schedule your first appointment to get started with your healthcare journey.</p>
+                    <a href="{{ url_for('book_appointment') }}" class="btn btn-primary btn-lg">
+                        <i class="fas fa-calendar-plus me-2"></i>Book Your First Appointment
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endif %}
+
+<!-- Quick Stats -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card bg-light">
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-md-3">
+                        <h4 class="text-primary">{{ appointments|selectattr('status', 'equalto', 'scheduled')|list|length }}</h4>
+                        <small class="text-muted">Scheduled</small>
+                    </div>
+                    <div class="col-md-3">
+                        <h4 class="text-success">{{ appointments|selectattr('status', 'equalto', 'completed')|list|length }}</h4>
+                        <small class="text-muted">Completed</small>
+                    </div>
+                    <div class="col-md-3">
+                        <h4 class="text-warning">{{ appointments|selectattr('status', 'equalto', 'rescheduled')|list|length }}</h4>
+                        <small class="text-muted">Rescheduled</small>
+                    </div>
+                    <div class="col-md-3">
+                        <h4 class="text-danger">{{ appointments|selectattr('status', 'equalto', 'cancelled')|list|length }}</h4>
+                        <small class="text-muted">Cancelled</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

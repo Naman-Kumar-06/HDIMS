@@ -1,0 +1,328 @@
+{% extends "base.html" %}
+
+{% block title %}Doctor Dashboard - HDIMS{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2 class="text-primary">
+                <i class="fas fa-user-md me-2"></i>Doctor Dashboard
+            </h2>
+            <div class="text-muted">
+                Welcome, Dr. {{ current_user.full_name }}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Stats -->
+<div class="row g-4 mb-4">
+    <div class="col-md-3">
+        <div class="card bg-primary text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h4 class="mb-0">{{ today_appointments|length }}</h4>
+                        <p class="mb-0">Today's Appointments</p>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-calendar-day fa-2x opacity-75"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card bg-success text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h4 class="mb-0">{{ upcoming_appointments|length }}</h4>
+                        <p class="mb-0">Upcoming</p>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-calendar-alt fa-2x opacity-75"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card bg-info text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h4 class="mb-0">{{ recent_patients|length }}</h4>
+                        <p class="mb-0">Recent Patients</p>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-users fa-2x opacity-75"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card bg-warning text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h4 class="mb-0">{{ "%.1f"|format(doctor.rating) }}</h4>
+                        <p class="mb-0">Rating</p>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-star fa-2x opacity-75"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Today's Schedule -->
+    <div class="col-lg-8">
+        <div class="card h-100">
+            <div class="card-header bg-light">
+                <h5 class="mb-0">
+                    <i class="fas fa-clock me-2"></i>Today's Schedule
+                    <span class="badge bg-primary ms-2">{{ now().strftime('%B %d, %Y') }}</span>
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if today_appointments %}
+                    {% for appointment in today_appointments %}
+                        <div class="d-flex justify-content-between align-items-center p-3 mb-3 border rounded">
+                            <div class="d-flex align-items-center">
+                                <div class="me-3">
+                                    <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center" 
+                                         style="width: 40px; height: 40px;">
+                                        <i class="fas fa-user"></i>
+                                    </div>
+                                </div>
+                                <div>
+                                    <h6 class="mb-1">{{ appointment.patient.user.full_name }}</h6>
+                                    <small class="text-muted">ID: {{ appointment.patient.patient_id }}</small>
+                                    <div class="mt-1">
+                                        <span class="badge bg-secondary">{{ appointment.appointment_type.title() }}</span>
+                                        {% if appointment.priority_score > 30 %}
+                                            <span class="badge bg-danger">High Priority</span>
+                                        {% elif appointment.priority_score > 15 %}
+                                            <span class="badge bg-warning">Medium Priority</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="text-end">
+                                <div class="fw-bold">{{ appointment.appointment_time.strftime('%I:%M %p') }}</div>
+                                <small class="text-muted">{{ appointment.status.title() }}</small>
+                                {% if appointment.status == 'scheduled' %}
+                                    <div class="mt-2">
+                                        <button class="btn btn-sm btn-success" data-bs-toggle="modal" 
+                                                data-bs-target="#completeModal{{ appointment.id }}">
+                                            <i class="fas fa-check me-1"></i>Complete
+                                        </button>
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="text-center py-4">
+                        <i class="fas fa-calendar-check fa-3x text-muted mb-3"></i>
+                        <p class="text-muted">No appointments scheduled for today</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Quick Actions & Info -->
+    <div class="col-lg-4">
+        <div class="card mb-4">
+            <div class="card-header bg-light">
+                <h6 class="mb-0">
+                    <i class="fas fa-bolt me-2"></i>Quick Actions
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="{{ url_for('doctor_appointments') }}" class="btn btn-primary">
+                        <i class="fas fa-calendar-alt me-2"></i>View All Appointments
+                    </a>
+                    <a href="{{ url_for('doctor_profile') }}" class="btn btn-outline-primary">
+                        <i class="fas fa-user-edit me-2"></i>Update Profile
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Doctor Info -->
+        <div class="card">
+            <div class="card-header bg-light">
+                <h6 class="mb-0">
+                    <i class="fas fa-id-badge me-2"></i>Professional Information
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <strong>Doctor ID:</strong>
+                    <div class="font-monospace">{{ doctor.doctor_id }}</div>
+                </div>
+                <div class="mb-3">
+                    <strong>Specialization:</strong>
+                    <div>{{ doctor.specialization }}</div>
+                </div>
+                <div class="mb-3">
+                    <strong>Experience:</strong>
+                    <div>{{ doctor.experience_years }} years</div>
+                </div>
+                <div class="mb-3">
+                    <strong>License:</strong>
+                    <div class="font-monospace">{{ doctor.license_number }}</div>
+                </div>
+                <div class="mb-0">
+                    <strong>Consultation Fee:</strong>
+                    <div class="fw-bold text-success">${{ "%.2f"|format(doctor.consultation_fee) }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Upcoming Appointments -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header bg-light">
+                <h5 class="mb-0">
+                    <i class="fas fa-calendar-week me-2"></i>Upcoming Appointments
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if upcoming_appointments %}
+                    <div class="row g-3">
+                        {% for appointment in upcoming_appointments %}
+                            <div class="col-md-6 col-lg-4">
+                                <div class="card border-start border-primary border-3">
+                                    <div class="card-body">
+                                        <h6 class="mb-1">{{ appointment.patient.user.full_name }}</h6>
+                                        <small class="text-muted">{{ appointment.appointment_type.title() }}</small>
+                                        <div class="mt-2">
+                                            <div class="fw-bold">{{ appointment.appointment_date.strftime('%m/%d/%Y') }}</div>
+                                            <div class="text-muted">{{ appointment.appointment_time.strftime('%I:%M %p') }}</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="text-center py-3">
+                        <i class="fas fa-calendar fa-2x text-muted mb-2"></i>
+                        <p class="text-muted mb-0">No upcoming appointments</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Complete Appointment Modals -->
+{% for appointment in today_appointments %}
+    {% if appointment.status == 'scheduled' %}
+        <div class="modal fade" id="completeModal{{ appointment.id }}" tabindex="-1">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Complete Appointment</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <form method="POST" action="{{ url_for('complete_appointment', appointment_id=appointment.id) }}">
+                        <div class="modal-body">
+                            <div class="row g-3">
+                                <div class="col-12">
+                                    <div class="alert alert-info">
+                                        <strong>Patient:</strong> {{ appointment.patient.user.full_name }}<br>
+                                        <strong>Time:</strong> {{ appointment.appointment_time.strftime('%I:%M %p') }}<br>
+                                        <strong>Type:</strong> {{ appointment.appointment_type.title() }}
+                                    </div>
+                                </div>
+                                
+                                <div class="col-12">
+                                    <label for="symptoms{{ appointment.id }}" class="form-label">Symptoms</label>
+                                    <textarea class="form-control" id="symptoms{{ appointment.id }}" name="symptoms" 
+                                              rows="3">{{ appointment.symptoms or '' }}</textarea>
+                                </div>
+                                
+                                <div class="col-12">
+                                    <label for="diagnosis{{ appointment.id }}" class="form-label">Diagnosis *</label>
+                                    <textarea class="form-control" id="diagnosis{{ appointment.id }}" name="diagnosis" 
+                                              rows="3" required></textarea>
+                                </div>
+                                
+                                <div class="col-md-6">
+                                    <label for="treatment{{ appointment.id }}" class="form-label">Treatment</label>
+                                    <textarea class="form-control" id="treatment{{ appointment.id }}" name="treatment" 
+                                              rows="3"></textarea>
+                                </div>
+                                
+                                <div class="col-md-6">
+                                    <label for="prescription{{ appointment.id }}" class="form-label">Prescription</label>
+                                    <textarea class="form-control" id="prescription{{ appointment.id }}" name="prescription" 
+                                              rows="3"></textarea>
+                                </div>
+                                
+                                <div class="col-12">
+                                    <label for="lab_results{{ appointment.id }}" class="form-label">Lab Results</label>
+                                    <textarea class="form-control" id="lab_results{{ appointment.id }}" name="lab_results" 
+                                              rows="3"></textarea>
+                                </div>
+                                
+                                <div class="col-12">
+                                    <label for="medical_notes{{ appointment.id }}" class="form-label">Medical Notes</label>
+                                    <textarea class="form-control" id="medical_notes{{ appointment.id }}" name="medical_notes" 
+                                              rows="3"></textarea>
+                                </div>
+                                
+                                <div class="col-md-6">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" 
+                                               id="follow_up_required{{ appointment.id }}" name="follow_up_required">
+                                        <label class="form-check-label" for="follow_up_required{{ appointment.id }}">
+                                            Follow-up Required
+                                        </label>
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-6">
+                                    <label for="follow_up_date{{ appointment.id }}" class="form-label">Follow-up Date</label>
+                                    <input type="date" class="form-control" id="follow_up_date{{ appointment.id }}" 
+                                           name="follow_up_date" min="{{ (now() + timedelta(days=1)).strftime('%Y-%m-%d') }}">
+                                </div>
+                                
+                                <div class="col-12">
+                                    <label for="notes{{ appointment.id }}" class="form-label">Appointment Notes</label>
+                                    <textarea class="form-control" id="notes{{ appointment.id }}" name="notes" 
+                                              rows="2"></textarea>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                            <button type="submit" class="btn btn-success">
+                                <i class="fas fa-check me-2"></i>Complete Appointment
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+{% endfor %}
+{% endblock %}

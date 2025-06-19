@@ -1,0 +1,271 @@
+{% extends "base.html" %}
+
+{% block title %}Doctor Profile - HDIMS{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-10">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2 class="text-primary">
+                <i class="fas fa-user-md me-2"></i>Doctor Profile
+            </h2>
+            <a href="{{ url_for('doctor_dashboard') }}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
+            </a>
+        </div>
+
+        <div class="card shadow-sm">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-id-badge me-2"></i>Professional Information
+                </h5>
+            </div>
+            <div class="card-body p-4">
+                <form method="POST">
+                    <div class="row g-3">
+                        <!-- Personal Information -->
+                        <div class="col-12">
+                            <h6 class="text-primary border-bottom pb-2">
+                                <i class="fas fa-user me-2"></i>Personal Information
+                            </h6>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <label for="first_name" class="form-label">First Name *</label>
+                            <input type="text" class="form-control" id="first_name" name="first_name" 
+                                   value="{{ current_user.first_name }}" required>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <label for="last_name" class="form-label">Last Name *</label>
+                            <input type="text" class="form-control" id="last_name" name="last_name" 
+                                   value="{{ current_user.last_name }}" required>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <label for="email" class="form-label">Email Address</label>
+                            <input type="email" class="form-control" id="email" name="email" 
+                                   value="{{ current_user.email }}" readonly>
+                            <div class="form-text">Email cannot be changed. Contact admin if needed.</div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <label for="phone" class="form-label">Phone Number</label>
+                            <input type="tel" class="form-control" id="phone" name="phone" 
+                                   value="{{ current_user.phone or '' }}">
+                        </div>
+                        
+                        <div class="col-12">
+                            <label for="address" class="form-label">Address</label>
+                            <textarea class="form-control" id="address" name="address" rows="3">{{ current_user.address or '' }}</textarea>
+                        </div>
+                        
+                        <!-- Professional Information -->
+                        <div class="col-12 mt-4">
+                            <h6 class="text-primary border-bottom pb-2">
+                                <i class="fas fa-stethoscope me-2"></i>Professional Information
+                            </h6>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <label for="doctor_id" class="form-label">Doctor ID</label>
+                            <input type="text" class="form-control" id="doctor_id" name="doctor_id" 
+                                   value="{{ doctor.doctor_id }}" readonly>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <label for="license_number" class="form-label">License Number</label>
+                            <input type="text" class="form-control" id="license_number" name="license_number" 
+                                   value="{{ doctor.license_number }}" readonly>
+                            <div class="form-text">Contact admin to update license information.</div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <label for="specialization" class="form-label">Specialization *</label>
+                            <select class="form-select" id="specialization" name="specialization" required>
+                                <option value="">Select Specialization</option>
+                                {% for spec in specializations %}
+                                    <option value="{{ spec }}" {{ 'selected' if doctor.specialization == spec else '' }}>
+                                        {{ spec }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                            <div class="form-text">Choose your primary medical specialization.</div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <label for="experience_years" class="form-label">Years of Experience</label>
+                            <input type="number" class="form-control" id="experience_years" name="experience_years" 
+                                   value="{{ doctor.experience_years or 0 }}" min="0" max="50">
+                        </div>
+                        
+                        <div class="col-12">
+                            <label for="education" class="form-label">Education & Qualifications</label>
+                            <textarea class="form-control" id="education" name="education" rows="3">{{ doctor.education or '' }}</textarea>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <label for="consultation_fee" class="form-label">Consultation Fee ($)</label>
+                            <input type="number" class="form-control" id="consultation_fee" name="consultation_fee" 
+                                   value="{{ doctor.consultation_fee or 0 }}" min="0" step="0.01">
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Current Rating</label>
+                                <div class="d-flex align-items-center">
+                                    <span class="h5 mb-0 me-2">{{ "%.1f"|format(doctor.rating) }}</span>
+                                    <i class="fas fa-star text-warning"></i>
+                                    <small class="text-muted ms-2">({{ doctor.total_reviews }} reviews)</small>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Working Hours -->
+                        <div class="col-12 mt-4">
+                            <h6 class="text-primary border-bottom pb-2">
+                                <i class="fas fa-clock me-2"></i>Working Hours
+                            </h6>
+                        </div>
+                        
+                        <div class="col-12">
+                            <div class="row g-3">
+                                {% set working_hours = [
+                                    ('monday', 'Monday'),
+                                    ('tuesday', 'Tuesday'),
+                                    ('wednesday', 'Wednesday'),
+                                    ('thursday', 'Thursday'),
+                                    ('friday', 'Friday'),
+                                    ('saturday', 'Saturday'),
+                                    ('sunday', 'Sunday')
+                                ] %}
+                                
+                                {% for day, day_name in working_hours %}
+                                    <div class="col-md-6 col-lg-4">
+                                        <div class="card">
+                                            <div class="card-header py-2">
+                                                <h6 class="mb-0">{{ day_name }}</h6>
+                                            </div>
+                                            <div class="card-body py-2">
+                                                <div class="row g-2">
+                                                    <div class="col-6">
+                                                        <label for="{{ day }}_start" class="form-label form-label-sm">Start</label>
+                                                        <input type="time" class="form-control form-control-sm" 
+                                                               id="{{ day }}_start" name="{{ day }}_start" 
+                                                               value="{{ doctor[day + '_start'].strftime('%H:%M') if doctor[day + '_start'] else '' }}">
+                                                    </div>
+                                                    <div class="col-6">
+                                                        <label for="{{ day }}_end" class="form-label form-label-sm">End</label>
+                                                        <input type="time" class="form-control form-control-sm" 
+                                                               id="{{ day }}_end" name="{{ day }}_end" 
+                                                               value="{{ doctor[day + '_end'].strftime('%H:%M') if doctor[day + '_end'] else '' }}">
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        
+                        <div class="col-12 mt-4">
+                            <div class="d-flex gap-3">
+                                <button type="submit" class="btn btn-primary btn-lg">
+                                    <i class="fas fa-save me-2"></i>Update Profile
+                                </button>
+                                <a href="{{ url_for('doctor_dashboard') }}" class="btn btn-outline-secondary btn-lg">
+                                    <i class="fas fa-times me-2"></i>Cancel
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Current Working Days Summary -->
+        <div class="card mt-4">
+            <div class="card-header bg-light">
+                <h6 class="mb-0">
+                    <i class="fas fa-calendar-week me-2"></i>Current Working Schedule
+                </h6>
+            </div>
+            <div class="card-body">
+                {% if working_days %}
+                    <div class="row">
+                        {% for day_info in working_days %}
+                            <div class="col-md-4 mb-2">
+                                <div class="d-flex justify-content-between">
+                                    <strong>{{ day_info.day }}:</strong>
+                                    <span>{{ day_info.start_time }} - {{ day_info.end_time }}</span>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p class="text-muted mb-0">No working hours configured. Please set your working hours above.</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Professional Stats -->
+        <div class="card mt-4">
+            <div class="card-header bg-light">
+                <h6 class="mb-0">
+                    <i class="fas fa-chart-bar me-2"></i>Professional Statistics
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-md-3">
+                        <h4 class="text-primary">{{ doctor.experience_years }}</h4>
+                        <small class="text-muted">Years Experience</small>
+                    </div>
+                    <div class="col-md-3">
+                        <h4 class="text-success">${{ "%.0f"|format(doctor.consultation_fee) }}</h4>
+                        <small class="text-muted">Consultation Fee</small>
+                    </div>
+                    <div class="col-md-3">
+                        <h4 class="text-warning">{{ "%.1f"|format(doctor.rating) }}</h4>
+                        <small class="text-muted">Average Rating</small>
+                    </div>
+                    <div class="col-md-3">
+                        <h4 class="text-info">{{ doctor.total_reviews }}</h4>
+                        <small class="text-muted">Total Reviews</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Auto-clear end time if start time is cleared
+    const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+    
+    days.forEach(day => {
+        const startField = document.getElementById(`${day}_start`);
+        const endField = document.getElementById(`${day}_end`);
+        
+        startField.addEventListener('change', function() {
+            if (!this.value) {
+                endField.value = '';
+            }
+        });
+        
+        endField.addEventListener('change', function() {
+            if (this.value && !startField.value) {
+                alert('Please set start time first');
+                this.value = '';
+            } else if (this.value && startField.value && this.value <= startField.value) {
+                alert('End time must be after start time');
+                this.value = '';
+            }
+        });
+    });
+});
+</script>
+{% endblock %}
